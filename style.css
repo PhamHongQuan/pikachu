@@ -9,6 +9,54 @@ body {
     background-color: #f0f0f0;
 }
 
+/* header begin */
+.main-header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    width: 100%; 
+    top: 0; 
+    z-index: 1000;
+}
+  
+.main-header h1 {
+    margin: 0;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li:last-child {
+    margin-right: 0;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+.content {
+    margin-top: 80px;
+}
+/* header end*/
+
+/* matrix game bigin */
 .container {
     display: grid;
     grid-template-columns: repeat(16, 1fr);
@@ -44,4 +92,4 @@ body {
     width: 100px;
     height: 100px; 
 }
-
+/* matrix game end */
