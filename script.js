@@ -1,64 +1,57 @@
-document.addEventListener("DOMContentLoaded", function() {
-    // Số hàng và số cột của ma trận
-    var rows = 9;
-    var columns = 16;
-    
-    // Đường dẫn đến thư mục img
-    var imageDirectory = "img/";
+// Tạo ma trận với số hàng và số cột được chỉ định
+function createMatrix(row, col) {
+  const matrix = [];
+  for (let i = 0; i < row; i++) {
+      matrix[i] = [];
+      for (let j = 0; j < col; j++) {
+          // Thiết lập giá trị của ma trận
+          if (i === 0 || i === row - 1 || j === 0 || j === col - 1) {
+              matrix[i][j] = -1; // Nếu ô là biên của ma trận, gán giá trị là -1
+          } else {
+              matrix[i][j] = randomInt(1, 9); // Ngược lại, gán một giá trị ngẫu nhiên từ 1 đến 10
+          }
+      }
+  }
+  return matrix;
+}
 
-    // Mảng chứa tên của hình ảnh trong thư mục img
-    var imageNames = [
-        "bulbasaur.png",
-        "caterpie.png",
-        "charmander.png",
-        "clefairy.png",
-        "ekans.png",
-        "nidoran-f.png",
-        "nidoran-m.png",
-        "pidgey.png",
-        "pikachu-f.png",
-        "rattata-f.png",
-        "sandshrew.png",
-        "spearow.png",
-        "squirtle.png",
-        "weedle.png"
-    ];
+// Hàm tạo số ngẫu nhiên 
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-    // Mảng mới chứa tên hình ảnh được lặp lại
-    var duplicatedImageNames = [];
-    for (var i = 0; i < Math.ceil(rows * columns / 2); i++) {
-        duplicatedImageNames = duplicatedImageNames.concat(imageNames);
-    }
+// Vẽ một button tại vị trí và giá trị chỉ định trên canvas
+function drawButton(ctx, x, y, value, cellWidth, cellHeight) {
+  ctx.fillStyle = "black"; // Chọn màu cho nút
+  ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight); // Vẽ hình chữ nhật
+  ctx.fillStyle = "white"; // Chọn màu cho chữ
+  ctx.font = "25px Arial"; // Chọn font chữ
+  ctx.fillText(value, x * cellWidth + cellWidth / 2.5, y * cellHeight + cellHeight / 1.5); // Vẽ chữ giữa hình chữ nhật
+}
 
-    var gridContainer = document.getElementById("gridContainer");
+// Vẽ ma trận trên canvas, giá trị nhận vào là chiều rộng ô và chiều cao 
+function drawMatrix(matrix, ctx, cellWidth, cellHeight) {
+  // Lặp qua từng hàng của ma trận
+  matrix.forEach((row, rowIndex) => {
+      // Lặp qua từng phần tử trong hàng hiện tại
+      row.forEach((value, colIndex) => {
+          // Vẽ nút tại vị trí (colIndex, rowIndex) với giá trị là 'value'
+          drawButton(ctx, colIndex, rowIndex, value, cellWidth, cellHeight);
+      });
+  });
+}
 
-    // Tạo ma trận các hình ảnh
-    for (var i = 0; i < rows; i++) {
-        for (var j = 0; j < columns; j++) {
-            var randomIndex = Math.floor(Math.random() * duplicatedImageNames.length);
-            var imageName = duplicatedImageNames.splice(randomIndex, 1)[0];
-            var imgSrc = imageDirectory + imageName;
-            
-            var button = document.createElement("div");
-            button.classList.add("button");
+// Vẽ ma trận trên canvas, giá trị nhận vào là số hàng và số cột
+function drawMatrixOnCanvas(canvasId, row, col) {
+  const canvas = document.getElementById(canvasId); // Lấy đối tượng canvas từ id
+  const ctx = canvas.getContext("2d"); // Lấy context để vẽ
+  const cellWidth = canvas.width / col; // Tính toán chiều rộng của mỗi ô
+  const cellHeight = canvas.height / row; // Tính toán chiều cao của mỗi ô
+  const matrix = createMatrix(row, col); // Tạo ma trận
+  drawMatrix(matrix, ctx, cellWidth, cellHeight); // Vẽ ma trận lên canvas
+}
 
-            // Tạo một container để canh giữa hình ảnh
-            var imgContainer = document.createElement("div");
-            imgContainer.classList.add("img-container");
-
-            var img = document.createElement("img");
-            img.src = imgSrc;
-            img.alt = "Pikachu";
-
-            // Thiết lập kích thước cho hình ảnh
-            img.style.width = "80px";
-            img.style.height = "80px";
-
-            img.style.opacity = "1";
-            
-            imgContainer.appendChild(img);
-            button.appendChild(imgContainer);
-            gridContainer.appendChild(button);
-        }
-    }
+// Thêm sự kiện cho sự kiện DOMContentLoaded để vẽ ma trận
+document.addEventListener("DOMContentLoaded", function () {
+  drawMatrixOnCanvas("matrixCanvas", 11, 18); // Gọi hàm vẽ ma trận trên canvas với id của canvas, số hàng và số cột
 });
