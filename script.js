@@ -83,7 +83,7 @@ function createButton(ctx, x, y, pokemon, cellWidth, cellHeight, matrix) {
   });
 
   button.addEventListener("click", function (event) {
-    handleButtonClick(event, pokemon, ctx, matrix);
+    handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight);
   });
 
   document.body.appendChild(button);
@@ -129,11 +129,11 @@ let x1, y1;
 let firstClickedPokemon = null;
 
 // Hàm xử lý khi button được nhấn
-function handleButtonClick(event, pokemon, ctx, matrix) {
+function handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight) {
   const button = event.currentTarget;
   const rect = button.getBoundingClientRect(); // Lấy ra kích thước và vị trí của button
-  const x = Math.floor(rect.left + window.scrollX); // Làm tròn xuống để đảm bảo x là số nguyên
-  const y = Math.floor(rect.top + window.scrollY); // Làm tròn xuống để đảm bảo y là số nguyên
+  const x = rect.left + window.scrollX; // Làm tròn xuống để đảm bảo x là số nguyên
+  const y = rect.top + window.scrollY; // Làm tròn xuống để đảm bảo y là số nguyên
 
   console.log(`Giá trị của button tại vị trí (${x}, ${y}):`, pokemon); // In ra giá trị của button tại vị trí x, y
 
@@ -148,6 +148,18 @@ function handleButtonClick(event, pokemon, ctx, matrix) {
     const y2 = y;
     if (secondClickedPokemon === firstClickedPokemon) {
       console.log("đúng r đó thg loz");
+
+      // xét theo cột
+      if (checkColumn(x1, y1, x2, y2, cellWidth, cellHeight)) {
+        console.log("cột oke");
+      } else {
+        // xét theo hàng
+        // if(checkRow(x1, y1, x2, y2, cellWidth, cellHeight)){
+        //   console.log("hang oke");
+
+        // }
+        console.log("cc j z");
+      }
     } else {
       console.log("clm m đui à");
     }
@@ -156,5 +168,66 @@ function handleButtonClick(event, pokemon, ctx, matrix) {
   }
 }
 
-
 // ====================================================================================== THUẬT TOÁN ======================================================================================
+function getButtonValueAtCoordinates(x, y) {
+  const canvas = document.getElementById("matrixCanvas");
+  const rect = canvas.getBoundingClientRect();
+  const offsetX = x;
+  const offsetY = y;
+  const element = document.elementFromPoint(offsetX, offsetY);
+
+  // Kiểm tra xem phần tử có phải là hình ảnh không
+  if (element.tagName === "IMG") {
+    // Lấy tên của hình ảnh từ thuộc tính src
+    return element.getAttribute("src").split("/").pop(); // Lấy phần cuối của đường dẫn, tức là tên của hình ảnh
+  } else {
+    return null;
+  }
+}
+
+function checkColumn(x1, y1, x2, y2, cellWidth, cellHeight) {
+  // Tìm tọa độ của button trên cùng và dưới cùng
+  const minY = Math.min(y1, y2);
+  const maxY = Math.max(y1, y2);
+
+  if (x1 == x2) {
+    // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
+    for (
+      let y = minY ;
+      y < maxY;
+      y += cellHeight + 10
+    ) {
+      console.log("y", y);
+      if (Math.abs(y1-y2) <= 60) {
+        return true;
+      } else {
+        const buttonValue = getButtonValueAtCoordinates(x1, y); // Lấy giá trị của button tại tọa độ x1, y
+        console.log(buttonValue);
+
+        if (buttonValue === "-1") {
+          return true; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
+        }
+      }
+    }
+  }
+  return false; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
+}
+
+// function checkRow(x1, y1, x2, y2, cellWidth, cellHeight) {
+//   // Tìm tọa độ của button trên cùng và dưới cùng
+//   const minX = Math.min(x1, x2);
+//   const maxX = Math.max(x1, x2);
+
+//   // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
+//   for (let x = minX + cellWidth; x < maxX-cellWidth; x+=cellWidth) {
+//     console.log("x", x);
+//     const buttonValue = getButtonValueAtCoordinates(x, y1); // Lấy giá trị của button tại tọa độ x1, y
+//     console.log(buttonValue);
+
+//       if (buttonValue !== "-1") {
+//         return false; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
+//       }
+
+//   }
+//   return true; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
+// }
