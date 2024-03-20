@@ -46,49 +46,6 @@ function drawMatrix(matrix, ctx, cellWidth, cellHeight) {
   });
 }
 
-// Tạo button cho từng ô trong ma trận
-function createButton(ctx, x, y, pokemon, cellWidth, cellHeight, matrix) {
-  const button = document.createElement("button");
-  button.style.width = cellWidth + "px";
-  button.style.height = cellHeight + "px";
-  button.style.position = "absolute";
-  button.style.left = x * cellWidth + "px";
-  button.style.top = y * cellHeight + "px";
-  button.style.padding = "0";
-  button.style.margin = "0";
-  button.style.border = "1px solid black";
-  button.style.background = "transparent";
-  button.style.cursor = "pointer";
-  button.style.display = "flex";
-  button.style.alignItems = "center";
-  button.style.justifyContent = "center";
-  button.style.left = x * (cellWidth + 10) + "px";
-  button.style.top = y * (cellHeight + 10) + "px";
-
-  // Thay đổi kích thước của hình ảnh và căn giữa
-  const imageSize = Math.min(cellWidth, cellHeight) * 1.5;
-  button.innerHTML =
-    pokemon === -1
-      ? "-1"
-      : `<img src="img/${pokemon}" style="max-width: ${imageSize}px; max-height: ${imageSize}px;">`;
-
-  // Sự kiện khi di chuột vào button
-  button.addEventListener("mouseenter", function () {
-    button.style.border = "5px solid red"; // Thay đổi viền của button khi di chuột vào
-  });
-
-  // Sự kiện khi di chuột ra khỏi button
-  button.addEventListener("mouseleave", function () {
-    button.style.border = "1px solid black"; // Thay đổi viền của button khi di chuột ra
-  });
-
-  button.addEventListener("click", function (event) {
-    handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight);
-  });
-
-  document.body.appendChild(button);
-}
-
 // Sự kiện xảy ra khi DOM đã load xong
 document.addEventListener("DOMContentLoaded", function () {
   const row = 11;
@@ -123,6 +80,39 @@ document.addEventListener("DOMContentLoaded", function () {
   drawMatrix(matrix, ctx, cellWidth, cellHeight);
 });
 
+// Tạo button cho từng ô trong ma trận
+function createButton(ctx, x, y, pokemon, cellWidth, cellHeight, matrix) {
+  const button = document.createElement("button");
+  button.style.width = cellWidth + "px";
+  button.style.height = cellHeight + "px";
+  button.style.position = "absolute";
+  button.style.left = x * cellWidth + "px";
+  button.style.top = y * cellHeight + "px";
+  button.style.padding = "0";
+  button.style.margin = "0";
+  button.style.border = "1px solid black";
+  button.style.background = "transparent";
+  button.style.cursor = "pointer";
+  button.style.display = "flex";
+  button.style.alignItems = "center";
+  button.style.justifyContent = "center";
+  button.style.left = x * (cellWidth + 10) + "px";
+  button.style.top = y * (cellHeight + 10) + "px";
+
+  // Thay đổi kích thước của hình ảnh và căn giữa
+  const imageSize = Math.min(cellWidth, cellHeight) * 1.5;
+  button.innerHTML =
+    pokemon === -1
+      ? "-1"
+      : `<img src="img/${pokemon}" style="max-width: ${imageSize}px; max-height: ${imageSize}px;">`;
+
+  button.addEventListener("click", function (event) {
+    handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight);
+  });
+
+  document.body.appendChild(button);
+}
+
 // Biến lưu giữ tọa độ của button đầu tiên
 let x1, y1;
 // Biến lưu giữ tên của Pokémon đầu tiên
@@ -136,7 +126,7 @@ function handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight) {
   const y = rect.top + window.scrollY; // Làm tròn xuống để đảm bảo y là số nguyên
 
   console.log(`Giá trị của button tại vị trí (${x}, ${y}):`, pokemon); // In ra giá trị của button tại vị trí x, y
-
+  showBorderRed(event);
   if (firstClickedPokemon === null) {
     // Nếu đây là lần nhấn button đầu tiên
     firstClickedPokemon = pokemon;
@@ -147,25 +137,56 @@ function handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight) {
     const x2 = x;
     const y2 = y;
     if (secondClickedPokemon === firstClickedPokemon) {
-      console.log("đúng r đó thg loz");
-
       // xét theo cột
       if (checkColumn(x1, y1, x2, y2, cellWidth, cellHeight)) {
         console.log("cột oke");
+        console.log("===================");
+
+        removeButton(x1, y1, x2, y2);
       } else {
         // xét theo hàng
-        // if(checkRow(x1, y1, x2, y2, cellWidth, cellHeight)){
-        //   console.log("hang oke");
-
-        // }
-        console.log("cc j z");
+        if (checkRow(x1, y1, x2, y2, cellWidth, cellHeight)) {
+          console.log("hang oke");
+          console.log("===================");
+          removeButton(x1, y1, x2, y2);
+        } else {
+          console.log("cc j z");
+          console.log("===================");
+          hideButtonBorderByCoordinates(x1, y1, x2, y2);
+        }
       }
     } else {
       console.log("clm m đui à");
+      console.log("===================");
+      hideButtonBorderByCoordinates(x1, y1, x2, y2);
     }
     // Sau khi so sánh xong, reset lại biến lưu giá trị của button đầu tiên
     firstClickedPokemon = null;
   }
+}
+
+// hiện viền màu đỏ khi nhấn vào button
+function showBorderRed(event) {
+  const button = event.currentTarget;
+  button.style.border = "5px solid red";
+}
+
+// ẩn đi viền
+function hideButtonBorderByCoordinates(x1, y1, x2, y2) {
+  const buttons = document.querySelectorAll("button");
+
+  buttons.forEach((button) => {
+    const rect = button.getBoundingClientRect();
+    const buttonX = rect.left + window.scrollX;
+    const buttonY = rect.top + window.scrollY;
+
+    if (
+      (buttonX === x1 && buttonY === y1) ||
+      (buttonX === x2 && buttonY === y2)
+    ) {
+      button.style.border = "1px solid black";
+    }
+  });
 }
 
 // ====================================================================================== THUẬT TOÁN ======================================================================================
@@ -192,42 +213,66 @@ function checkColumn(x1, y1, x2, y2, cellWidth, cellHeight) {
 
   if (x1 == x2) {
     // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
-    for (
-      let y = minY ;
-      y < maxY;
-      y += cellHeight + 10
-    ) {
-      console.log("y", y);
-      if (Math.abs(y1-y2) <= 60) {
-        return true;
-      } else {
+    if (Math.abs(y1 - y2) <= 60 && Math.abs(y1 - y2) >= 50) {
+      return true;
+    } else {
+      for (let y = minY + cellWidth; y < maxY; y += cellHeight + 10) {
+        console.log("y", y);
         const buttonValue = getButtonValueAtCoordinates(x1, y); // Lấy giá trị của button tại tọa độ x1, y
         console.log(buttonValue);
-
-        if (buttonValue === "-1") {
-          return true; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
+        if (buttonValue !== null) {
+          return false; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
         }
       }
     }
+  } else {
+    return false; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
   }
-  return false; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
+  return true;
+}
+function checkRow(x1, y1, x2, y2, cellWidth, cellHeight) {
+  // Tìm tọa độ của button trên cùng và dưới cùng
+  const minX = Math.min(x1, x2);
+  const maxX = Math.max(x1, x2);
+
+  if (y1 === y2) {
+    // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
+    if (Math.abs(x1 - x2) <= 68 && Math.abs(x1 - x2) >= 50) {
+      return true;
+    } else {
+      for (let x = minX + cellHeight; x < maxX; x += cellWidth + 10) {
+        console.log("x", x);
+        const buttonValue = getButtonValueAtCoordinates(x, y1); // Lấy giá trị của button tại tọa độ x, y1
+        console.log(buttonValue);
+        if (buttonValue !== null) {
+          return false;
+        }
+      }
+    }
+  } else {
+    return false;
+  }
+  return true;
 }
 
-// function checkRow(x1, y1, x2, y2, cellWidth, cellHeight) {
-//   // Tìm tọa độ của button trên cùng và dưới cùng
-//   const minX = Math.min(x1, x2);
-//   const maxX = Math.max(x1, x2);
+function removeButton(x1, y1, x2, y2) {
+  const button1 = getButtonAtCoordinates(x1, y1);
+  const button2 = getButtonAtCoordinates(x2, y2);
 
-//   // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
-//   for (let x = minX + cellWidth; x < maxX-cellWidth; x+=cellWidth) {
-//     console.log("x", x);
-//     const buttonValue = getButtonValueAtCoordinates(x, y1); // Lấy giá trị của button tại tọa độ x1, y
-//     console.log(buttonValue);
+  // Loại bỏ hai button đã nhấn khỏi DOM
+  button1.remove();
+  button2.remove();
+}
 
-//       if (buttonValue !== "-1") {
-//         return false; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
-//       }
+function getButtonAtCoordinates(x, y) {
+  const elements = document.elementsFromPoint(x, y);
 
-//   }
-//   return true; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
-// }
+  // Tìm button trong danh sách các phần tử tại tọa độ (x, y)
+  for (const element of elements) {
+    if (element.tagName.toLowerCase() === "button") {
+      return element;
+    }
+  }
+
+  return null;
+}
