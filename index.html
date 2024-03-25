@@ -1,42 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Pikachu</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pikachu</title>
     <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="canvas-container">
-        <canvas id="matrixCanvas" width="1000px" height="500px"></canvas>
-    </div>
-    <script src="script.js"></script>
-</body>
-</html>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="grid" id="grid"></div>
+  </body>
 
-<!-- function checkColumn(x1, y1, x2, y2, cellWidth, cellHeight) {
-    // Tìm tọa độ của button trên cùng và dưới cùng
-    const minY = Math.min(y1, y2);
-    const maxY = Math.max(y1, y2);
-  
-    if (x1 == x2) {
-      // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
-      for (
-        let y = minY ;
-        y < maxY;
-        y += cellHeight + 10
-      ) {
-        console.log("y", y);
-        if (Math.abs(y1-y2) <= 60) {
-          return true;
-        } else {
-          const buttonValue = getButtonValueAtCoordinates(x1, y); // Lấy giá trị của button tại tọa độ x1, y
-          console.log(buttonValue);
-          if (buttonValue === null) {
-            return true; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
-          }
-        }
-      }
-    }
-    return false; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
-  } -->
+  <!-- script -->
+  <script src="script.js"></script>
+</html>

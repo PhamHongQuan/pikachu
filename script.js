@@ -1,56 +1,12 @@
-// Hàm xáo trộn mảng
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
-// Tạo ma trận
-function createMatrix(row, col, pokemons, ctx) {
-  const matrix = [];
-  let pokemonIndex = 0; // Biến index cho phần tử Pokémon
-
-  for (let i = 0; i < row; i++) {
-    matrix[i] = [];
-    for (let j = 0; j < col; j++) {
-      // Kiểm tra nếu là biên của ma trận
-      if (i === 0 || i === row - 1 || j === 0 || j === col - 1) {
-        matrix[i][j] = -1;
-      } else {
-        // Lặp lại các phần tử của mảng pokemons
-        matrix[i][j] = pokemons[pokemonIndex % pokemons.length];
-        pokemonIndex++;
-      }
-    }
-  }
-  return matrix;
-}
-
-// Vẽ ma trận lên canvas
-function drawMatrix(matrix, ctx, cellWidth, cellHeight) {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-  matrix.forEach((row, rowIndex) => {
-    row.forEach((pokemon, colIndex) => {
-      createButton(
-        ctx,
-        colIndex,
-        rowIndex,
-        pokemon,
-        cellWidth,
-        cellHeight,
-        matrix
-      );
-    });
-  });
-}
-
-// Sự kiện xảy ra khi DOM đã load xong
-document.addEventListener("DOMContentLoaded", function () {
-  const row = 11;
-  const col = 18;
-  const pokemons = [
+$(document).ready(function () {
+  const ROWS = 11;
+  const COLS = 18;
+  const GRID_CONTAINER = $("#grid");
+  const gridWidth = GRID_CONTAINER.width();
+  const gridHeight = GRID_CONTAINER.height();
+  const cellWidth = gridWidth / COLS;
+  const cellHeight = gridHeight / ROWS;
+  const IMAGE_NAMES = [
     "bulbasaur.png",
     "caterpie.png",
     "charmander.png",
@@ -66,213 +22,246 @@ document.addEventListener("DOMContentLoaded", function () {
     "squirtle.png",
     "weedle.png",
   ];
-  const canvasId = "matrixCanvas";
-  const canvas = document.getElementById(canvasId);
-  const ctx = canvas.getContext("2d");
-  const cellWidth = canvas.width / col;
-  const cellHeight = canvas.height / row;
 
-  // Tạo một mảng chứa các cặp Pokémon và xáo trộn nó
-  const pokemonPairs = [...pokemons, ...pokemons];
-  shuffleArray(pokemonPairs);
+  // Tạo button với hình ảnh
+  function createButton(imageName) {
+    const button = $("<button></button>");
 
-  const matrix = createMatrix(row, col, pokemonPairs, ctx);
-  drawMatrix(matrix, ctx, cellWidth, cellHeight);
-});
-
-// Tạo button cho từng ô trong ma trận
-function createButton(ctx, x, y, pokemon, cellWidth, cellHeight, matrix) {
-  const button = document.createElement("button");
-  button.style.width = cellWidth + "px";
-  button.style.height = cellHeight + "px";
-  button.style.position = "absolute";
-  button.style.left = x * cellWidth + "px";
-  button.style.top = y * cellHeight + "px";
-  button.style.padding = "0";
-  button.style.margin = "0";
-  button.style.border = "1px solid black";
-  button.style.background = "transparent";
-  button.style.cursor = "pointer";
-  button.style.display = "flex";
-  button.style.alignItems = "center";
-  button.style.justifyContent = "center";
-  button.style.left = x * (cellWidth + 10) + "px";
-  button.style.top = y * (cellHeight + 10) + "px";
-
-  // Thay đổi kích thước của hình ảnh và căn giữa
-  const imageSize = Math.min(cellWidth, cellHeight) * 1.5;
-  button.innerHTML =
-    pokemon === -1
-      ? "-1"
-      : `<img src="img/${pokemon}" style="max-width: ${imageSize}px; max-height: ${imageSize}px;">`;
-
-  button.addEventListener("click", function (event) {
-    handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight);
-  });
-
-  document.body.appendChild(button);
-}
-
-// Biến lưu giữ tọa độ của button đầu tiên
-let x1, y1;
-// Biến lưu giữ tên của Pokémon đầu tiên
-let firstClickedPokemon = null;
-
-// Hàm xử lý khi button được nhấn
-function handleButtonClick(event, pokemon, ctx, matrix, cellWidth, cellHeight) {
-  const button = event.currentTarget;
-  const rect = button.getBoundingClientRect(); // Lấy ra kích thước và vị trí của button
-  const x = rect.left + window.scrollX; // Làm tròn xuống để đảm bảo x là số nguyên
-  const y = rect.top + window.scrollY; // Làm tròn xuống để đảm bảo y là số nguyên
-
-  console.log(`Giá trị của button tại vị trí (${x}, ${y}):`, pokemon); // In ra giá trị của button tại vị trí x, y
-  showBorderRed(event);
-  if (firstClickedPokemon === null) {
-    // Nếu đây là lần nhấn button đầu tiên
-    firstClickedPokemon = pokemon;
-    x1 = x;
-    y1 = y;
-  } else {
-    const secondClickedPokemon = pokemon;
-    const x2 = x;
-    const y2 = y;
-    if (secondClickedPokemon === firstClickedPokemon) {
-      // xét theo cột
-      if (checkColumn(x1, y1, x2, y2, cellWidth, cellHeight)) {
-        console.log("cột oke");
-        console.log("===================");
-
-        removeButton(x1, y1, x2, y2);
-      } else {
-        // xét theo hàng
-        if (checkRow(x1, y1, x2, y2, cellWidth, cellHeight)) {
-          console.log("hang oke");
-          console.log("===================");
-          removeButton(x1, y1, x2, y2);
-        } else {
-          console.log("cc j z");
-          console.log("===================");
-          hideButtonBorderByCoordinates(x1, y1, x2, y2);
-        }
-      }
+    if (imageName === "-1") {
+      button.text("-1");
     } else {
-      console.log("clm m đui à");
-      console.log("===================");
-      hideButtonBorderByCoordinates(x1, y1, x2, y2);
+      button.css("background-image", `url('img/${imageName}')`);
+      button.data("imageName", imageName);
+
+      button.mouseenter(function () {
+        // Loại bỏ lớp CSS trước nếu đã tồn tại
+        // Thêm lớp CSS để thực hiện hiệu ứng
+        $(this).addClass("button-clicked");
+
+        button.mouseleave(function () {
+          // Loại bỏ lớp CSS để kết thúc hiệu ứng
+          $(this).removeClass("button-clicked");
+        });
+      });
+
+
+      // sự kiện click chọn  hình
+      button.click(function () {
+        handleButtonClick($(this));
+      });
     }
-    // Sau khi so sánh xong, reset lại biến lưu giá trị của button đầu tiên
-    firstClickedPokemon = null;
+
+    return button;
   }
-}
 
-// hiện viền màu đỏ khi nhấn vào button
-function showBorderRed(event) {
-  const button = event.currentTarget;
-  button.style.border = "5px solid red";
-}
+  // Tạo ma trận button
+  function createMatrix() {
+    for (let i = 0; i < ROWS; i++) {
+      for (let j = 0; j < COLS; j++) {
+        const cell = $("<div></div>").addClass("cell");
+        let imageName;
 
-// ẩn đi viền
-function hideButtonBorderByCoordinates(x1, y1, x2, y2) {
-  const buttons = document.querySelectorAll("button");
+        // Nếu ở ngoài cùng thì giá trị button là -1, ngược lại là tên của hình ảnh
+        if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
+          imageName = "-1";
+        } else {
+          const random = Math.floor(Math.random() * IMAGE_NAMES.length);
+          imageName = IMAGE_NAMES[random];
+        }
 
-  buttons.forEach((button) => {
-    const rect = button.getBoundingClientRect();
-    const buttonX = rect.left + window.scrollX;
-    const buttonY = rect.top + window.scrollY;
+        const button = createButton(imageName);
+        cell.append(button);
+        GRID_CONTAINER.append(cell);
+      }
+    }
+  }
+
+  // Lấy vị trí của button trên ma trận
+  function getPositionOfButton(button) {
+    const cells = $("#grid .cell");
+    let position = { row: -1, column: -1 };
+
+    cells.each(function (index) {
+      const currentButton = $(this).find("button");
+      if (currentButton.is(button)) {
+        position.row = Math.floor(index / COLS);
+        position.column = index % COLS;
+        return false;
+      }
+    });
+
+    return position;
+  }
+  // Hàm lấy button tại vị trí hàng và cột chỉ định
+  function getButtonAtPosition(column, row) {
+    return $(".cell")
+      .eq(row * 18 + column)
+      .find("button");
+  }
+
+  // Kiểm tra button theo chiều dọc
+  function checkColumn(button1, button2) {
+    const position1 = getPositionOfButton(button1);
+    const position2 = getPositionOfButton(button2);
+    console.log("1", button1.data("imageName"));
+    console.log("2", button2.data("imageName"));
 
     if (
-      (buttonX === x1 && buttonY === y1) ||
-      (buttonX === x2 && buttonY === y2)
+      position1.column === position2.column &&
+      button1.data("imageName") === button2.data("imageName")
     ) {
-      button.style.border = "1px solid black";
-    }
-  });
-}
+      const startRow = Math.min(position1.row, position2.row);
+      const endRow = Math.max(position1.row, position2.row);
 
-// ====================================================================================== THUẬT TOÁN ======================================================================================
-function getButtonValueAtCoordinates(x, y) {
-  const canvas = document.getElementById("matrixCanvas");
-  const rect = canvas.getBoundingClientRect();
-  const offsetX = x;
-  const offsetY = y;
-  const element = document.elementFromPoint(offsetX, offsetY);
-
-  // Kiểm tra xem phần tử có phải là hình ảnh không
-  if (element.tagName === "IMG") {
-    // Lấy tên của hình ảnh từ thuộc tính src
-    return element.getAttribute("src").split("/").pop(); // Lấy phần cuối của đường dẫn, tức là tên của hình ảnh
-  } else {
-    return null;
-  }
-}
-
-function checkColumn(x1, y1, x2, y2, cellWidth, cellHeight) {
-  // Tìm tọa độ của button trên cùng và dưới cùng
-  const minY = Math.min(y1, y2);
-  const maxY = Math.max(y1, y2);
-
-  if (x1 == x2) {
-    // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
-    if (Math.abs(y1 - y2) <= 60 && Math.abs(y1 - y2) >= 50) {
-      return true;
-    } else {
-      for (let y = minY + cellWidth; y < maxY; y += cellHeight + 10) {
-        console.log("y", y);
-        const buttonValue = getButtonValueAtCoordinates(x1, y); // Lấy giá trị của button tại tọa độ x1, y
-        console.log(buttonValue);
-        if (buttonValue !== null) {
-          return false; // Nếu có button nằm giữa và có giá trị khác -1, trả về false
-        }
-      }
-    }
-  } else {
-    return false; // Nếu không có button nào nằm giữa với giá trị khác -1, trả về true
-  }
-  return true;
-}
-function checkRow(x1, y1, x2, y2, cellWidth, cellHeight) {
-  // Tìm tọa độ của button trên cùng và dưới cùng
-  const minX = Math.min(x1, x2);
-  const maxX = Math.max(x1, x2);
-
-  if (y1 === y2) {
-    // Kiểm tra xem cột từ button1 đến button2 có button nào có giá trị khác -1 không
-    if (Math.abs(x1 - x2) <= 68 && Math.abs(x1 - x2) >= 50) {
-      return true;
-    } else {
-      for (let x = minX + cellHeight; x < maxX; x += cellWidth + 10) {
-        console.log("x", x);
-        const buttonValue = getButtonValueAtCoordinates(x, y1); // Lấy giá trị của button tại tọa độ x, y1
-        console.log(buttonValue);
-        if (buttonValue !== null) {
+      for (let row = startRow + 1; row < endRow; row++) {
+        const buttonInBetween = getButtonAtPosition(position1.column, row);
+        if (buttonInBetween.css("display") !== "none") {
+          console.log("CÓ BUTTON Ở GIỮA");
           return false;
         }
       }
-    }
-  } else {
-    return false;
-  }
-  return true;
-}
 
-function removeButton(x1, y1, x2, y2) {
-  const button1 = getButtonAtCoordinates(x1, y1);
-  const button2 = getButtonAtCoordinates(x2, y2);
-
-  // Loại bỏ hai button đã nhấn khỏi DOM
-  button1.remove();
-  button2.remove();
-}
-
-function getButtonAtCoordinates(x, y) {
-  const elements = document.elementsFromPoint(x, y);
-
-  // Tìm button trong danh sách các phần tử tại tọa độ (x, y)
-  for (const element of elements) {
-    if (element.tagName.toLowerCase() === "button") {
-      return element;
+      console.log("KHÔNG CÓ BUTTON Ở GIỮA");
+      return true;
+    } else {
+      console.log("KHÔNG CỘT");
+      return false;
     }
   }
 
-  return null;
-}
+  // Kiểm tra button theo chiều ngang
+  function checkRow(button1, button2) {
+    const position1 = getPositionOfButton(button1);
+    const position2 = getPositionOfButton(button2);
+    console.log("1", button1.data("imageName"));
+    console.log("2", button2.data("imageName"));
+
+    if (
+      position1.row === position2.row &&
+      button1.data("imageName") === button2.data("imageName")
+    ) {
+      const startColumn = Math.min(position1.column, position2.column);
+      const endColumn = Math.max(position1.column, position2.column);
+
+      for (let column = startColumn + 1; column < endColumn; column++) {
+        const buttonInBetween = getButtonAtPosition(column, position1.row);
+        if (buttonInBetween.css("display") !== "none") {
+          console.log("CÓ BUTTON Ở GIỮA");
+          return false;
+        }
+      }
+
+      console.log("KHÔNG CÓ BUTTON Ở GIỮA");
+
+      return true;
+    } else {
+      console.log("KHÔNG HÀNG");
+      return false;
+    }
+  }
+
+  let previousButton = null;
+
+  // Xử lý khi click vào button
+  function handleButtonClick(button) {
+    if (previousButton === null) {
+      previousButton = button;
+    } else {
+
+      if (button !== previousButton) {
+        if (
+          checkColumn(previousButton, button) ||
+          checkRow(previousButton, button)
+        ) {
+          // console.log("Hai button nằm kề nhau");
+          drawLine(previousButton, button);
+          hideTwoButtons(previousButton, button);
+        } else {
+          // console.log("Hai button không nằm kề nhau");
+        }
+        previousButton = null;
+      } else {
+        previousButton = null;
+      }
+    }
+  }
+
+  // hàm ẩn 2 button
+  function hideTwoButtons(button1, button2) {
+    button1.hide(); // Ẩn button 1
+    button2.hide(); // Ẩn button 2
+  }
+
+  // Hàm vẽ đường thẳng từ tâm của button1 đến tâm của button2
+  function drawLine(button1, button2) {
+    /* ví dụ
+    button1 ở vị trí 1:3
+    button2 ở vị trí 1:4
+    deltaX = 1 - 1 = 0
+    deltaY = 4 - 3 = 1
+    distance = căn bậc 2 (0*0+1*1) = 1
+
+    css: ta có cellHeight = 31px; cellWidth = 31px
+    width = 1
+    top: 3*31+31/2 = 93 + 15.5 = 108.5px
+    left: 1*31+31/2 = 46.5px
+
+    */
+    // Lấy tọa độ của tâm của button1 và button2
+    const position1 = getPositionOfButton(button1);
+    const position2 = getPositionOfButton(button2);
+    console.log("cộtB1", position1.column);
+    console.log("hàngB1", position1.row);
+    console.log("cộtB2", position2.column);
+    console.log("hàngB2", position2.row);
+    // Tính toán chiều dài và góc nghiêng của đường thẳng
+    const deltaX = position2.column - position1.column;
+    const deltaY = position2.row - position1.row;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+    // Tạo đường thẳng
+    const line = $("<div></div>");
+    line.addClass("line");
+    // Thiết lập chiều dài và góc nghiêng của đường thẳng
+
+    console.log(cellHeight);
+    console.log( cellWidth);
+    line.css({
+      width: distance + "px",
+      // transform: `rotate(${angle}deg)`,
+      top: position1.row * cellHeight + cellHeight / 2 +"px",
+      left: position1.column * cellWidth + cellWidth / 2 +"px",
+      backgroundColor: "red", // Màu đỏ cho đường thẳng
+      border: "3px solid red", // Đường thẳng dày 3px
+    });
+
+    // Thêm đường thẳng vào grid container
+    $("#grid").append(line);
+  }
+
+  // // Hàm random một button từ các button còn hiển thị trên ma trận
+  // function randomVisibleButton() {
+  //   const visibleButtons = [];
+
+  //   // Lặp qua tất cả các ô trên ma trận và kiểm tra xem button có hiển thị không
+  //   $("#grid .cell button").each(function () {
+  //     const button = $(this);
+  //     if (button.css("display") !== "none") {
+  //       visibleButtons.push(button);
+  //     }
+  //   });
+
+  //   // Nếu không có button hiển thị, trả về null
+  //   if (visibleButtons.length === 0) {
+  //     return null;
+  //   }
+
+  //   // Chọn ngẫu nhiên một button từ danh sách các button hiển thị
+  //   const randomIndex = Math.floor(Math.random() * visibleButtons.length);
+  //   return visibleButtons[randomIndex];
+  // }
+
+  // Tạo ma trận button khi trang được tải
+  createMatrix();
+});
