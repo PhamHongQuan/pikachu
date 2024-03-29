@@ -44,10 +44,10 @@ $(document).ready(function () {
         });
       });
 
-
       // sự kiện click chọn  hình
       button.click(function () {
         handleButtonClick($(this));
+        console.log("================================");
       });
     }
 
@@ -76,7 +76,7 @@ $(document).ready(function () {
     }
   }
 
-  // Lấy vị trí của button trên ma trận
+  // Lấy vị trí(row, col) của button trên ma trận
   function getPositionOfButton(button) {
     const cells = $("#grid .cell");
     let position = { row: -1, column: -1 };
@@ -94,21 +94,21 @@ $(document).ready(function () {
   }
   // Hàm lấy button tại vị trí hàng và cột chỉ định
   function getButtonAtPosition(column, row) {
-    return $(".cell")
-      .eq(row * 18 + column)
-      .find("button");
+    const cellIndex = row * COLS + column; // Tính chỉ số của ô trong mảng các ô
+    const cell = $(".cell").eq(cellIndex); // Lấy ô tại chỉ số đã tính toán
+    const button = cell.find("button"); // Tìm button trong ô đó
+    return button;
   }
 
   // Kiểm tra button theo chiều dọc
   function checkColumn(button1, button2) {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
-    console.log("1", button1.data("imageName"));
-    console.log("2", button2.data("imageName"));
-
+    // nếu 2 button nằm trên 1 cột, tên giống nhau và không phải là 1
     if (
       position1.column === position2.column &&
-      button1.data("imageName") === button2.data("imageName")
+      button1.data("imageName") === button2.data("imageName") &&
+      position1.row !== position2.row
     ) {
       const startRow = Math.min(position1.row, position2.row);
       const endRow = Math.max(position1.row, position2.row);
@@ -120,7 +120,6 @@ $(document).ready(function () {
           return false;
         }
       }
-
       console.log("KHÔNG CÓ BUTTON Ở GIỮA");
       return true;
     } else {
@@ -129,16 +128,15 @@ $(document).ready(function () {
     }
   }
 
-  // Kiểm tra button theo chiều ngang
+  // // Kiểm tra button theo chiều ngang
   function checkRow(button1, button2) {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
-    console.log("1", button1.data("imageName"));
-    console.log("2", button2.data("imageName"));
 
     if (
       position1.row === position2.row &&
-      button1.data("imageName") === button2.data("imageName")
+      button1.data("imageName") === button2.data("imageName") &&
+      position1.column !== position2.column
     ) {
       const startColumn = Math.min(position1.column, position2.column);
       const endColumn = Math.max(position1.column, position2.column);
@@ -160,24 +158,104 @@ $(document).ready(function () {
     }
   }
 
-  let previousButton = null;
+  // Kiểm tra dòng theo chiều ngang
+  function checkLineX(startY, endY, column) {
+    for (let y = startY + 1; y < endY; y++) {
+      const buttonInBetween = getButtonAtPosition(column, y);
+      if (buttonInBetween.css("display") !== "none") {
+        console.log("X CHECKKK CÓ BUTTON Ở GIỮA");
+        return false;
+      }
+    }
+    console.log("CHECKKK KHÔNG CÓ BUTTON Ở GIỮA");
+    return true;
+  }
 
+  // Kiểm tra dòng theo chiều dọc
+  function checkLineY(startX, endX, row) {
+    for (let x = startX + 1; x < endX; x++) {
+      const buttonInBetween = getButtonAtPosition(x, row);
+      if (buttonInBetween.css("display") !== "none") {
+        console.log("Y CHECKKK CÓ BUTTON Ở GIỮA");
+        return false;
+      }
+    }
+    console.log("CHECKKK KHÔNG CÓ BUTTON Ở GIỮA");
+    return true;
+  }
+
+  // Hàm kiểm tra xem hai button tạo thành hình chữ nhật hay không
+  function checkRectX(button1, button2) {
+    // Tìm điểm có y nhỏ nhất và lớn nhất
+    if (button1.data("imageName") === button2.data("imageName")) {
+      let minButtonPosition = getPositionOfButton(button1);
+      let maxButtonPosition = getPositionOfButton(button2);
+      if (minButtonPosition.row > maxButtonPosition.row) {
+        minButtonPosition = getPositionOfButton(button2);
+        maxButtonPosition = getPositionOfButton(button1);
+      }
+      for (let y = minButtonPosition.row + 1; y < maxButtonPosition.row; y++) {
+        // Kiểm tra ba dòng
+        if (
+          checkLineX(minButtonPosition.row, y, minButtonPosition.column) &&
+          checkLineY(minButtonPosition.column, maxButtonPosition.column, y) &&
+          checkLineX(y, maxButtonPosition.row, maxButtonPosition.column)
+        ) {
+          return true;
+        }
+      }
+    } else {
+      return false;
+    }
+  }
+
+  // Hàm kiểm tra xem hai button tạo thành hình chữ nhật hay không
+  function checkRectY(button1, button2) {
+    // Tìm điểm có y nhỏ nhất và lớn nhất
+    if (button1.data("imageName") === button2.data("imageName")) {
+      let minButtonPosition = getPositionOfButton(button1);
+      let maxButtonPosition = getPositionOfButton(button2);
+      if (minButtonPosition.column > maxButtonPosition.column) {
+        minButtonPosition = getPositionOfButton(button2);
+        maxButtonPosition = getPositionOfButton(button1);
+      }
+      for (
+        let y = minButtonPosition.column + 1;
+        y < maxButtonPosition.column;
+        y++
+      ) {
+        // Kiểm tra ba dòng
+        if (
+          checkLineY(minButtonPosition.column, y, minButtonPosition.row) &&
+          checkLineX(minButtonPosition.row, maxButtonPosition.row, y) &&
+          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row)
+        ) {
+          return true;
+        }
+      }
+    } else {
+      return false;
+    }
+  }
   // Xử lý khi click vào button
+  let previousButton = null;
   function handleButtonClick(button) {
     if (previousButton === null) {
       previousButton = button;
     } else {
-
       if (button !== previousButton) {
         if (
           checkColumn(previousButton, button) ||
           checkRow(previousButton, button)
         ) {
-          // console.log("Hai button nằm kề nhau");
-          drawLine(previousButton, button);
+          console.log("hai button kề nhau");
           hideTwoButtons(previousButton, button);
-        } else {
-          // console.log("Hai button không nằm kề nhau");
+        } else if (
+          checkRectX(previousButton, button) ||
+          checkRectY(previousButton, button)
+        ) {
+          console.log("2 button là hình chữ nhật");
+          hideTwoButtons(previousButton, button);
         }
         previousButton = null;
       } else {
@@ -192,76 +270,5 @@ $(document).ready(function () {
     button2.hide(); // Ẩn button 2
   }
 
-  // Hàm vẽ đường thẳng từ tâm của button1 đến tâm của button2
-  function drawLine(button1, button2) {
-    /* ví dụ
-    button1 ở vị trí 1:3
-    button2 ở vị trí 1:4
-    deltaX = 1 - 1 = 0
-    deltaY = 4 - 3 = 1
-    distance = căn bậc 2 (0*0+1*1) = 1
-
-    css: ta có cellHeight = 31px; cellWidth = 31px
-    width = 1
-    top: 3*31+31/2 = 93 + 15.5 = 108.5px
-    left: 1*31+31/2 = 46.5px
-
-    */
-    // Lấy tọa độ của tâm của button1 và button2
-    const position1 = getPositionOfButton(button1);
-    const position2 = getPositionOfButton(button2);
-    console.log("cộtB1", position1.column);
-    console.log("hàngB1", position1.row);
-    console.log("cộtB2", position2.column);
-    console.log("hàngB2", position2.row);
-    // Tính toán chiều dài và góc nghiêng của đường thẳng
-    const deltaX = position2.column - position1.column;
-    const deltaY = position2.row - position1.row;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-
-    // Tạo đường thẳng
-    const line = $("<div></div>");
-    line.addClass("line");
-    // Thiết lập chiều dài và góc nghiêng của đường thẳng
-
-    console.log(cellHeight);
-    console.log( cellWidth);
-    line.css({
-      width: distance + "px",
-      // transform: `rotate(${angle}deg)`,
-      top: position1.row * cellHeight + cellHeight / 2 +"px",
-      left: position1.column * cellWidth + cellWidth / 2 +"px",
-      backgroundColor: "red", // Màu đỏ cho đường thẳng
-      border: "3px solid red", // Đường thẳng dày 3px
-    });
-
-    // Thêm đường thẳng vào grid container
-    $("#grid").append(line);
-  }
-
-  // // Hàm random một button từ các button còn hiển thị trên ma trận
-  // function randomVisibleButton() {
-  //   const visibleButtons = [];
-
-  //   // Lặp qua tất cả các ô trên ma trận và kiểm tra xem button có hiển thị không
-  //   $("#grid .cell button").each(function () {
-  //     const button = $(this);
-  //     if (button.css("display") !== "none") {
-  //       visibleButtons.push(button);
-  //     }
-  //   });
-
-  //   // Nếu không có button hiển thị, trả về null
-  //   if (visibleButtons.length === 0) {
-  //     return null;
-  //   }
-
-  //   // Chọn ngẫu nhiên một button từ danh sách các button hiển thị
-  //   const randomIndex = Math.floor(Math.random() * visibleButtons.length);
-  //   return visibleButtons[randomIndex];
-  // }
-
-  // Tạo ma trận button khi trang được tải
   createMatrix();
 });
