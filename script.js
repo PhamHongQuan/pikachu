@@ -103,7 +103,6 @@ function getButtonAtPosition(column, row) {
 function checkOutside(button1, button2) {
   const position1 = getPositionOfButton(button1);
   const position2 = getPositionOfButton(button2);
-
   // kiểm tra 2 button cùng hàng có khác nhau không
   if (
     position1.row === position2.row &&
@@ -125,7 +124,7 @@ function checkOutside(button1, button2) {
   // kiểm tra 2 button cùng cột có khác nhau không
   else if (
     position1.column === position2.column &&
-    position1.row !== position2.column
+    position1.row !== position2.row
   ) {
     // kiểm tra bên trái
     if (position1.column === 1 && position2.column === 1) {
@@ -143,27 +142,25 @@ function checkOutside(button1, button2) {
   return false;
 }
 
-// hàm kiểm tra phía ngoài cùng của 4 hướng nhưng button1 và button2 không cùng nằm trên 1 hàng hoặc 1 cột
-function checkOutsideWithoutSame(button1, button2) {
+// hàm kiểm tra phía trên cùng
+function checkOutsideTop(button1, button2) {
   let minButtonPosition = getPositionOfButton(button1);
   let maxButtonPosition = getPositionOfButton(button2);
   if (minButtonPosition.row > maxButtonPosition.row) {
     minButtonPosition = getPositionOfButton(button2);
     maxButtonPosition = getPositionOfButton(button1);
   }
-  // kiểm tra 2 button có khác cột hay không
+  // nếu 2 button nằm cùng cột thì return false
+  if (minButtonPosition.column === maxButtonPosition.column) {
+    return false;
+  }
   // trường hợp 1: buttonMin nằm hàng đầu tiên nhưng buttonMax thì không
   if (minButtonPosition.row === 1 && maxButtonPosition.row !== 1) {
     // kiểm tra buttonMax (xem trước nó có button nào có giá trị không)
     for (let i = maxButtonPosition.row - 1; i > 0; i--) {
       const buttonsAbove = getButtonAtPosition(maxButtonPosition.column, i);
-      console.log("1");
-      console.log("i = ", i);
-      console.log("above", buttonsAbove.data("imageName"));
-      var positionOfAbove = getPositionOfButton(buttonsAbove);
-      console.log("cột, dòng", positionOfAbove.column, positionOfAbove.row);
+
       if (buttonsAbove.data("imageName") !== "-1") {
-        console.log("max", maxButtonPosition.row, maxButtonPosition.column);
         return false;
       }
     }
@@ -173,13 +170,7 @@ function checkOutsideWithoutSame(button1, button2) {
     // kiểm tra buttonMin (xem trước nó có button nào khác hay không)
     for (let i = minButtonPosition.row - 1; i > 0; i--) {
       const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
-      console.log("2");
-      console.log("i = ", i);
-      console.log("above", buttonsAbove.data("imageName"));
-      var positionOfAbove = getPositionOfButton(buttonsAbove);
-      console.log("cột, dòng", positionOfAbove.column, positionOfAbove.row);
       if (buttonsAbove.data("imageName") !== "-1") {
-        console.log("min", minButtonPosition.row, minButtonPosition.column);
         return false;
       }
     }
@@ -188,45 +179,207 @@ function checkOutsideWithoutSame(button1, button2) {
   // Kiểm tra đồng thời cả hai buttonMin và buttonMax
   if (minButtonPosition.row !== 1 && maxButtonPosition.row !== 1) {
     // kiểm tra buttonMin
+    let isValid = true; // Giả sử ban đầu là hợp lệ
     for (let i = minButtonPosition.row - 1; i > 0; i--) {
       const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
-      console.log("3");
-      console.log("i = ", i);
-      console.log("above", buttonsAbove.data("imageName"));
-      var positionOfAbove = getPositionOfButton(buttonsAbove);
-      console.log("cột, dòng", positionOfAbove.column, positionOfAbove.row);
       if (buttonsAbove.data("imageName") !== "-1") {
-        console.log("min", minButtonPosition.row, minButtonPosition.column);
         isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
         break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
       }
     }
-    let isValid = true; // Giả sử ban đầu là hợp lệ
     // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
     if (isValid) {
       for (let i = maxButtonPosition.row - 1; i > 0; i--) {
         const buttonsAbove = getButtonAtPosition(maxButtonPosition.column, i);
-        console.log("4");
-        console.log("i = ", i);
-        console.log("above", buttonsAbove.data("imageName"));
-        var positionOfAbove = getPositionOfButton(buttonsAbove);
-        console.log("cột, dòng", positionOfAbove.column, positionOfAbove.row);
         if (buttonsAbove.data("imageName") !== "-1") {
-          console.log("max", maxButtonPosition.row, maxButtonPosition.column);
           isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
           break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
         }
       }
     }
+    return isValid; // Trả về kết quả kiểm tra
+  }
+  return true;
+}
 
+// hàm kiểm tra phía dưới cùng
+function checkOutsideBottom(button1, button2) {
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  if (minButtonPosition.row > maxButtonPosition.row) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+
+  // nếu 2 button cùng cột thì trả về false
+  if (minButtonPosition.column === maxButtonPosition.column) {
+    return false;
+  }
+  // trường hợp 1: buttonMax nằm hàng đầu tiên(phía dưới ma trận) nhưng buttonMin thì không
+  if (maxButtonPosition.row === 9 && minButtonPosition.row !== 9) {
+    // kiểm tra buttonMin (xem dưới nó có button nào có giá trị không)
+    for (let i = minButtonPosition.row + 1; i <= 9; i++) {
+      const buttonBelow = getButtonAtPosition(minButtonPosition.column, i);
+      if (buttonBelow.data("imageName") !== "-1") {
+        return false;
+      }
+    }
+  }
+
+  // trường hợp 2: buttonMin nằm ở hàng đầu tiên(phía dưới ma trận) nhưng buttonMin thì không
+  if (minButtonPosition.row === 9 && maxButtonPosition.row !== 9) {
+    // kiểm tra buttonMax (xem dưới nó có button nào khác hay không)
+    for (let i = maxButtonPosition.row + 1; i <= 9; i++) {
+      const buttonBelow = getButtonAtPosition(maxButtonPosition.column, i);
+      if (buttonBelow.data("imageName") !== "-1") {
+        return false;
+      }
+    }
+  }
+
+  // trường hợp 3: cả buttonMin và buttonMax đều không nằm ở hàng dưới cùng
+  if (minButtonPosition.row !== 9 && maxButtonPosition.row !== 9) {
+    // kiểm tra buttonMin
+    let isValid = true; // Giả sử ban đầu là hợp lệ
+    for (let i = minButtonPosition.row + 1; i <= 9; i++) {
+      const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
+      if (buttonsAbove.data("imageName") !== "-1") {
+        isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
+        break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+      }
+    }
+    // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
+    if (isValid) {
+      for (let i = maxButtonPosition.row + 1; i <= 9; i++) {
+        const buttonsAbove = getButtonAtPosition(maxButtonPosition.column, i);
+        if (buttonsAbove.data("imageName") !== "-1") {
+          isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
+          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+        }
+      }
+    }
+    return isValid; // Trả về kết quả kiểm tra
+  }
+  return true;
+}
+
+// hàm kiểm tra ngoài cùng bên phải
+function checkOutsideRight(button1, button2) {
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  if (minButtonPosition.row > maxButtonPosition.row) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  // nếu cả 2 button nằm cùng hàng thì trả về false
+  if (minButtonPosition.row === maxButtonPosition.row) {
+    return false;
+  }
+
+  // trường hợp 1: buttonMin nằm ngoài cùng bên phải nhưng buttonMax thì không
+  if (minButtonPosition.column === 16 && maxButtonPosition.column !== 16) {
+    // kiểm tra buttonMax
+    for (let i = maxButtonPosition.column + 1; i <= 16; i++) {
+      const buttonRight = getButtonAtPosition(i, maxButtonPosition.row);
+      if (buttonRight.data("imageName") !== "-1") {
+        return false;
+      }
+    }
+  }
+
+  // trường hợp 2: buttonMax nằm ngoài cùng bên phải nhưng buttonMin thì không
+  if (maxButtonPosition.column === 16 && minButtonPosition.column !== 16) {
+    // kiểm tra buttonMin
+    for (let i = minButtonPosition.column + 1; i <= 16; i++) {
+      const buttonRight = getButtonAtPosition(i, minButtonPosition.row);
+      if (buttonRight.data("imageName") !== "-1") {
+        return false;
+      }
+    }
+  }
+
+  // trường hợp 3: cả buttonMin và buttonMax đều không nằm ở ngoài cùng bên phải
+  if (minButtonPosition.column !== 16 && maxButtonPosition.column !== 16) {
+    let isValid = true; // Giả sử ban đầu là hợp lệ
+    // kiểm tra buttonMin
+    for (let i = minButtonPosition.column + 1; i <= 16; i++) {
+      const buttonRight = getButtonAtPosition(i, minButtonPosition.row);
+      if (buttonRight.data("imageName") !== "-1") {
+        isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
+        break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+      }
+    }
+    // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
+    if (isValid) {
+      for (let i = maxButtonPosition.column + 1; i <= 16; i++) {
+        const buttonRight = getButtonAtPosition(i, maxButtonPosition.row);
+        if (buttonRight.data("imageName") !== "-1") {
+          isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
+          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+        }
+      }
+    }
     return isValid; // Trả về kết quả kiểm tra
   }
 
-  // nếu 2 button nằm cùng cột thì return false
-  if (minButtonPosition.column === maxButtonPosition.column) {
-    console.log("5");
+  return true;
+}
+
+// hàm kiểm tra ngoài cùng bên trái
+function checkOutsideLeft(button1, button2) {
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  if (minButtonPosition.row > maxButtonPosition.row) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  // nếu 2 button cùng hàng thì trả về false
+  if (maxButtonPosition.row === minButtonPosition.row) {
     return false;
   }
+  // trường hợp 1: buttonMin nằm ngoài cùng bên trái nhưng butonMax thì không
+  if (minButtonPosition.column === 1 && maxButtonPosition.column !== 1) {
+    // kiểm tra buttonMax
+    for (let i = maxButtonPosition.column - 1; i > 0; i--) {
+      const buttonLeft = getButtonAtPosition(i, maxButtonPosition.row);
+      if (buttonLeft.data("imageName") !== "-1") {
+        return false;
+      }
+    }
+  }
+
+  // trường hợp 2: buttonMax nằm ngoài cùng bên trái nhưng buttonMin thì không
+  if (maxButtonPosition.column === 1 && minButtonPosition.column !== 1) {
+    // kieemr tra buttonMin
+    for (let i = maxButtonPosition.column - 1; i > 0; i--) {
+      const buttonLeft = getButtonAtPosition(i, maxButtonPosition.row);
+      if (buttonLeft.data("imageName") !== "-1") {
+        return false;
+      }
+    }
+  }
+  // trường hợp 3: cả buttonMin và buttonMax đều không nằm ngoài cùng bên trái
+  if (minButtonPosition.column !== 1 && maxButtonPosition.column !== 1) {
+    let isValid = true; // Giả sử ban đầu là hợp lệ
+    // kiểm tra buttonMin
+    for (let i = minButtonPosition.column - 1; i > 0; i--) {
+      const buttonLeft = getButtonAtPosition(i, maxButtonPosition.row);
+      if (buttonLeft.data("imageName") !== "-1") {
+        isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
+        break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+      }
+    }
+    // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
+    for (let i = maxButtonPosition.column - 1; i > 0; i--) {
+      const buttonLeft = getButtonAtPosition(i, maxButtonPosition.row);
+      if (buttonLeft.data("imageName") !== "-1") {
+        isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
+        break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+      }
+    }
+    return isValid; // Trả về kết quả kiểm tra
+  }
+
   return true;
 }
 
@@ -282,8 +435,11 @@ function checkRow(button1, button2) {
 
 // Kiểm tra dòng theo chiều ngang
 function checkLineX(startY, endY, column) {
-  for (let y = startY + 1; y < endY; y++) {
+  for (let y = startY; y < endY; y++) {
     const buttonInBetween = getButtonAtPosition(column, y);
+    const b = getPositionOfButton(buttonInBetween);
+    console.log("buttonBetweenX: ", "row: ", b.row, "|| col: ", b.column);
+    console.log("y", y);
     if (buttonInBetween.data("imageName") !== "-1") {
       return false;
     }
@@ -293,8 +449,12 @@ function checkLineX(startY, endY, column) {
 
 // Kiểm tra dòng theo chiều dọc
 function checkLineY(startX, endX, row) {
-  for (let x = startX + 1; x < endX; x++) {
+  for (let x = startX; x < endX; x++) {
     const buttonInBetween = getButtonAtPosition(x, row);
+    const b = getPositionOfButton(buttonInBetween);
+    console.log("Y: ", "row: ", b.row, "|| col: ", b.column);
+    console.log("buttonBetwenY:", b.row, b.column);
+    console.log("x: ", x);
     if (buttonInBetween.data("imageName") !== "-1") {
       return false;
     }
@@ -302,7 +462,7 @@ function checkLineY(startX, endX, row) {
   return true;
 }
 
-// Hàm kiểm tra xem hai button tạo thành hình chữ nhật hay không
+// Hàm kiểm tra xem hai button tạo thành hình chữ nhật hay không(THEO CHIỀU DỌC)
 function checkRectX(button1, button2) {
   // Tìm điểm có y nhỏ nhất và lớn nhất
   if (button1.data("imageName") === button2.data("imageName")) {
@@ -315,16 +475,20 @@ function checkRectX(button1, button2) {
     for (let y = minButtonPosition.row + 1; y < maxButtonPosition.row; y++) {
       // Kiểm tra ba dòng
       if (
-        checkLineX(minButtonPosition.row, y, minButtonPosition.column) &&
+        checkLineX(
+          minButtonPosition.row + 1,
+          y - 1,
+          minButtonPosition.column
+        ) &&
         checkLineY(minButtonPosition.column, maxButtonPosition.column, y) &&
         checkLineX(y, maxButtonPosition.row, maxButtonPosition.column)
       ) {
+        console.log("eee");
         return true;
       }
     }
-  } else {
-    return false;
   }
+  return false;
 }
 
 // Hàm kiểm tra xem hai button tạo thành hình chữ nhật hay không
@@ -343,7 +507,7 @@ function checkRectY(button1, button2) {
   ) {
     // Kiểm tra ba dòng
     if (
-      checkLineY(minButtonPosition.column, y, minButtonPosition.row) &&
+      checkLineY(minButtonPosition.column + 1, y - 1, minButtonPosition.row) &&
       checkLineX(minButtonPosition.row, maxButtonPosition.row, y) &&
       checkLineY(y, maxButtonPosition.column, maxButtonPosition.row)
     ) {
@@ -352,6 +516,134 @@ function checkRectY(button1, button2) {
   }
   return false;
 }
+
+// kiểm tra đường chéo từ trái sang phải trong hình vuông n
+function checkSquareLeftToRight(button1, button2) {
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  if (minButtonPosition.column > maxButtonPosition.column) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  if (
+    maxButtonPosition.column - minButtonPosition.column === 1 &&
+    maxButtonPosition.row - minButtonPosition.row === 1
+  ) {
+    const buttonTempRight = getButtonAtPosition(
+      minButtonPosition.column + 1,
+      minButtonPosition.row
+    );
+    const buttonTempBottom = getButtonAtPosition(
+      minButtonPosition.column,
+      minButtonPosition.row + 1
+    );
+
+    if (
+      buttonTempRight.data("imageName") === "-1" ||
+      buttonTempBottom.data("imageName") === "-1"
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// kiểm tra đường chéo từ phải sang trái trong hình vuông
+function checkSquareRightToLeft(button1, button2) {
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  if (minButtonPosition.column > maxButtonPosition.column) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  if (
+    minButtonPosition.row - maxButtonPosition.row === 1 &&
+    maxButtonPosition.column - minButtonPosition.column === 1
+  ) {
+    const buttonTempTop = getButtonAtPosition(
+      minButtonPosition.column,
+      minButtonPosition.row - 1
+    );
+    const buttonTempRight = getButtonAtPosition(
+      minButtonPosition.column + 1,
+      minButtonPosition.row
+    );
+
+    if (
+      buttonTempTop.data("imageName") === "-1" ||
+      buttonTempRight.data("imageName") === "-1"
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// kiểm tra chữ chữ L -> trái sang phải (của buttonmMin)
+// getPositionOfButton:=> (row:column)
+// getButtonAtPosition(column, row)
+function checkRowShapeLTR(button1, button2){
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  if (minButtonPosition.column > maxButtonPosition.column) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  let flag = false;
+  // kiểm tra từ min->cột của max, nếu trên hàng đó không có vật cản thì xét tiếp
+  if(checkLineY(minButtonPosition.column+1, maxButtonPosition.column+1, minButtonPosition.row)){
+    const buttonTemp = getButtonAtPosition(maxButtonPosition.column, minButtonPosition.row);
+    // buttonTempPosition: vị trí mà hàm checkLineX sẽ chạy từ max hoặc đến max
+    const buttonTempPosition = getPositionOfButton(buttonTemp);
+    console.log('min', minButtonPosition.row, minButtonPosition.column);
+    console.log('max', maxButtonPosition.row, maxButtonPosition.column);
+    console.log('temp: ',buttonTempPosition.row, buttonTempPosition.column);
+    // nếu dòng của max < dòng min => chạy từ dòng max tới dòng của temp trên cột max
+    if(maxButtonPosition.row < minButtonPosition.row){
+      if(checkLineX(maxButtonPosition.row+1, buttonTempPosition.row+1, maxButtonPosition.column)){
+        flag = true;
+      }else {
+        flag = false;
+      }
+    }else if(maxButtonPosition.row > minButtonPosition.row){
+      // chạy từ hàng của temp đến max trên cột max
+      if(checkLineX(buttonTempPosition.row, maxButtonPosition.row, maxButtonPosition.column)){
+        flag = true
+      }else {
+        flag = false;
+      }
+    }
+  }
+  // kiểm tra từ hàng min->hàng max(phía trên button min)
+  else if(checkLineX(maxButtonPosition.row, minButtonPosition.row, minButtonPosition.column)){
+    const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
+    const buttonTempPosition = getPositionOfButton(buttonTemp);
+    if(checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row)){
+      flag =true;
+    }else {
+      flag = false;
+    }
+  } 
+  // kiểm tra từ hàng min-> max (phía dưới buttonMin)
+  else if(checkLineX(minButtonPosition.row+1, maxButtonPosition.row+1, minButtonPosition.column)){
+    const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
+    const buttonTempPosition = getPositionOfButton(buttonTemp);
+    if(checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row)){
+      console.log('SAI NEF');
+      flag = true;
+    }else{
+      flag = false;
+    }
+  }
+  return flag;
+}
+
+
+
+
+
 // Xử lý khi click vào button
 let previousButton = null;
 function handleButtonClick(button) {
@@ -378,12 +670,54 @@ function handleButtonClick(button) {
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
         hideTwoButtons(previousButton, button);
-      } else if (checkOutsideWithoutSame(previousButton, button)) {
-        console.log("kiểm tra 2 hàng và 2 cột NHƯNG KHÔNG CÓ vật cản");
+      } else if (checkOutsideTop(previousButton, button)) {
+        console.log("TOP");
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
         hideTwoButtons(previousButton, button);
-      } else {
+      } else if (checkOutsideBottom(previousButton, button)) {
+        console.log("BOTTOM");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } else if (checkOutsideRight(previousButton, button)) {
+        console.log("RIGHT");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } else if (checkOutsideLeft(previousButton, button)) {
+        console.log("LEFT");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } else if (checkSquareLeftToRight(previousButton, button)) {
+        console.log("HÌNH VUÔNG T->P");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } else if (checkSquareRightToLeft(previousButton, button)) {
+        console.log("HÌNH VUÔNG P->T");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } else if (checkRowShapeLTR(previousButton, button)) {
+        console.log("RRRRR");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkRectX(previousButton, button)) {
+        console.log("HCN XXXX");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } else if (checkRectY(previousButton, button)) {
+        console.log("HCN YYYY");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else {
         console.log("đéo có cái nào đc");
       }
       previousButton = null;

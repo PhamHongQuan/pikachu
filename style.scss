@@ -6,14 +6,12 @@ body {
   height: 100vh;
   margin: 0;
 }
-
 .grid {
   display: grid;
   grid-template-columns: repeat(18, 30px);
   grid-template-rows: repeat(11, 30px);
   gap: 1px;
 }
-
 .cell {
   width: 30px;
   height: 30px;
@@ -23,7 +21,6 @@ body {
   justify-content: center;
   align-items: center;
 }
-
 .cell button {
   width: 100%;
   height: 100%;
@@ -32,19 +29,11 @@ body {
 }
 
 @keyframes buttonClickAnimation {
-  0% {
-    transform: scale(1);
-    border: 1px solid red;
-  }
-  50% {
-    transform: scale(1.1);
-    border: 1px solid transparent;
-  }
-  100% {
-    transform: scale(1);
-    border: 1px solid red;
-  }
+  0% { transform: scale(1); border: 1px solid red;}
+  50% { transform: scale(1.1); border: 1px solid  transparent;}
+  100% { transform: scale(1);border: 1px solid red;}
 }
+
 .button-clicked {
   animation: buttonClickAnimation 0.5s ease;
-}/*# sourceMappingURL=style.css.map */
+}
