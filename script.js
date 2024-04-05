@@ -438,8 +438,6 @@ function checkLineX(startY, endY, column) {
   for (let y = startY; y < endY; y++) {
     const buttonInBetween = getButtonAtPosition(column, y);
     const b = getPositionOfButton(buttonInBetween);
-    console.log("buttonBetweenX: ", "row: ", b.row, "|| col: ", b.column);
-    console.log("y", y);
     if (buttonInBetween.data("imageName") !== "-1") {
       return false;
     }
@@ -452,9 +450,6 @@ function checkLineY(startX, endX, row) {
   for (let x = startX; x < endX; x++) {
     const buttonInBetween = getButtonAtPosition(x, row);
     const b = getPositionOfButton(buttonInBetween);
-    console.log("Y: ", "row: ", b.row, "|| col: ", b.column);
-    console.log("buttonBetwenY:", b.row, b.column);
-    console.log("x: ", x);
     if (buttonInBetween.data("imageName") !== "-1") {
       return false;
     }
@@ -581,10 +576,10 @@ function checkSquareRightToLeft(button1, button2) {
   return false;
 }
 
-// kiểm tra chữ chữ L -> trái sang phải (của buttonmMin)
+// kiểm tra chữ chữ L 
 // getPositionOfButton:=> (row:column)
 // getButtonAtPosition(column, row)
-function checkRowShapeLTR(button1, button2){
+function checkShapeL(button1, button2){
   let minButtonPosition = getPositionOfButton(button1);
   let maxButtonPosition = getPositionOfButton(button2);
   if (minButtonPosition.column > maxButtonPosition.column) {
@@ -597,9 +592,6 @@ function checkRowShapeLTR(button1, button2){
     const buttonTemp = getButtonAtPosition(maxButtonPosition.column, minButtonPosition.row);
     // buttonTempPosition: vị trí mà hàm checkLineX sẽ chạy từ max hoặc đến max
     const buttonTempPosition = getPositionOfButton(buttonTemp);
-    console.log('min', minButtonPosition.row, minButtonPosition.column);
-    console.log('max', maxButtonPosition.row, maxButtonPosition.column);
-    console.log('temp: ',buttonTempPosition.row, buttonTempPosition.column);
     // nếu dòng của max < dòng min => chạy từ dòng max tới dòng của temp trên cột max
     if(maxButtonPosition.row < minButtonPosition.row){
       if(checkLineX(maxButtonPosition.row+1, buttonTempPosition.row+1, maxButtonPosition.column)){
@@ -631,7 +623,6 @@ function checkRowShapeLTR(button1, button2){
     const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
     const buttonTempPosition = getPositionOfButton(buttonTemp);
     if(checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row)){
-      console.log('SAI NEF');
       flag = true;
     }else{
       flag = false;
@@ -639,6 +630,146 @@ function checkRowShapeLTR(button1, button2){
   }
   return flag;
 }
+
+
+
+// hàm kiểm tra chữ U (hướng bên phải buttonMax)
+function checkShapeU_Right(button1, button2) {
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  // mặc định hàm nào có hàng nhỏ hơn là hàm min
+  if (minButtonPosition.row > maxButtonPosition.row) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  if(minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column){
+    return false;
+  }
+  // kiểm tra chữ U bắt đầu từ bên phải buttonMax
+  // duyệt từ bên phải buttonMax đến hết dòng đó
+  // trên đường đi đó, xét button đầu tiên có giá trị làm buttonTemp1
+  // lấy ra giao điểm đầu tiên
+    var buttonIntersection;
+    for(let i = maxButtonPosition.column+1; i <= 16;i++){
+      const buttonBarrier = getButtonAtPosition(i, maxButtonPosition.row);
+      if(buttonBarrier.data('imageName') !== '-1'){
+        buttonIntersection = getButtonAtPosition(i-1, maxButtonPosition.row);
+        break;
+      }
+    }
+    const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
+    if(checkLineY(maxButtonPosition.column+1, buttonIntersection.column+1, maxButtonPosition.row)&&
+      checkLineX(minButtonPosition.row, buttonIntersectionPosition.row+1, buttonIntersectionPosition.column) &&
+      checkLineY(minButtonPosition.column+1, buttonIntersectionPosition.column+1, minButtonPosition.row)){
+      return true;
+    }
+    
+  return false;
+}
+
+
+
+// hàm kiểm tra chữ U (bên trái button)
+function checkShapeU_Left(button1, button2) { 
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  // mặc định hàm nào có hàng nhỏ hơn là hàm min
+  if (minButtonPosition.row > maxButtonPosition.row) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+
+  if(minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column){
+    return false;
+  }
+
+  var buttonIntersection;
+  for(let i = maxButtonPosition.column-1; i >= 0; i--){
+    const buttonBarrier = getButtonAtPosition(i, maxButtonPosition.row);
+    if(buttonBarrier.data('imageName') !== '-1'){
+      buttonIntersection = getButtonAtPosition(i+1, maxButtonPosition.row);
+      break;
+    }
+  }
+  const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
+  if(checkLineY(buttonIntersectionPosition.column, maxButtonPosition.column, maxButtonPosition.row) &&
+    checkLineX(minButtonPosition.row, buttonIntersectionPosition.row+1, buttonIntersectionPosition.column) &&
+    checkLineY(buttonIntersectionPosition.column, minButtonPosition.column, minButtonPosition.row)){
+      return true;
+    }
+
+  return false;
+}
+
+
+
+
+// kiểm tra chữ U (phía trên)
+function checkShapeU_Top(button1, button2){
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  // mặc định hàm nào có cột nhỏ hơn là hàm min
+  if (minButtonPosition.column > maxButtonPosition.column) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  if(minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column){
+    return false;
+  }
+
+  var buttonIntersection;
+  for(let i = maxButtonPosition.row-1; i >= 0; i--){
+    const buttonBarrier = getButtonAtPosition(maxButtonPosition.column, i);
+    if(buttonBarrier.data('imageName') !== '-1'){
+      buttonIntersection = getButtonAtPosition(maxButtonPosition.column, i+1)
+      break;
+    }
+  }
+  const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
+  if(checkLineX(buttonIntersectionPosition.row, maxButtonPosition.row, maxButtonPosition.column) &&
+    checkLineY(minButtonPosition.column, maxButtonPosition.column+1, buttonIntersectionPosition.row) && 
+    checkLineX(buttonIntersectionPosition.row, minButtonPosition.row, minButtonPosition.column)){
+      return true;
+    }
+
+  return false;
+}
+
+
+// kiểm tra chữ u(phía dưới)
+function checkShapeU_Bottom(button1, button2){
+  let minButtonPosition = getPositionOfButton(button1);
+  let maxButtonPosition = getPositionOfButton(button2);
+  // mặc định hàm nào có cột nhỏ hơn là hàm min
+  if (minButtonPosition.column > maxButtonPosition.column) {
+    minButtonPosition = getPositionOfButton(button2);
+    maxButtonPosition = getPositionOfButton(button1);
+  }
+  if(minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column){
+    return false;
+  }
+
+  var buttonIntersection;
+  for(let i = maxButtonPosition.row+1; i <= 9;i++){
+    const buttonBarrier = getButtonAtPosition(maxButtonPosition.column, i);
+    if(buttonBarrier.data('imageName') !== '-1'){
+      buttonIntersection = getButtonAtPosition(maxButtonPosition.column, i-1);
+      break;
+    }
+  }
+  const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
+  if(checkLineX(maxButtonPosition.row+1, buttonIntersectionPosition.row+1, maxButtonPosition.column) && 
+    checkLineY(minButtonPosition.column, maxButtonPosition.column+1, buttonIntersectionPosition.row) && 
+    checkLineX(minButtonPosition.row, buttonIntersectionPosition.row+1, minButtonPosition.column)){
+      return true;
+    }
+
+  return false;
+}
+
+
+
+
 
 
 
@@ -657,61 +788,91 @@ function handleButtonClick(button) {
       console.log("previous: ", previousButton.data("imageName"));
       console.log("current: ", button.data("imageName"));
 
-      if (
-        checkColumn(previousButton, button) ||
-        checkRow(previousButton, button)
-      ) {
+      if (checkColumn(previousButton, button) ||checkRow(previousButton, button)) {
         console.log("kiểm tra hàng hoặc cột");
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
         hideTwoButtons(previousButton, button);
-      } else if (checkOutside(previousButton, button)) {
+      } 
+      else if (checkOutside(previousButton, button)) {
         console.log("kiểm tra 2 hàng và 2 cột ngoài cùng");
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
         hideTwoButtons(previousButton, button);
-      } else if (checkOutsideTop(previousButton, button)) {
-        console.log("TOP");
-        changeImageNameToMinusOne(previousButton);
-        changeImageNameToMinusOne(button);
-        hideTwoButtons(previousButton, button);
-      } else if (checkOutsideBottom(previousButton, button)) {
-        console.log("BOTTOM");
-        changeImageNameToMinusOne(previousButton);
-        changeImageNameToMinusOne(button);
-        hideTwoButtons(previousButton, button);
-      } else if (checkOutsideRight(previousButton, button)) {
-        console.log("RIGHT");
-        changeImageNameToMinusOne(previousButton);
-        changeImageNameToMinusOne(button);
-        hideTwoButtons(previousButton, button);
-      } else if (checkOutsideLeft(previousButton, button)) {
-        console.log("LEFT");
-        changeImageNameToMinusOne(previousButton);
-        changeImageNameToMinusOne(button);
-        hideTwoButtons(previousButton, button);
-      } else if (checkSquareLeftToRight(previousButton, button)) {
-        console.log("HÌNH VUÔNG T->P");
-        changeImageNameToMinusOne(previousButton);
-        changeImageNameToMinusOne(button);
-        hideTwoButtons(previousButton, button);
-      } else if (checkSquareRightToLeft(previousButton, button)) {
-        console.log("HÌNH VUÔNG P->T");
-        changeImageNameToMinusOne(previousButton);
-        changeImageNameToMinusOne(button);
-        hideTwoButtons(previousButton, button);
-      } else if (checkRowShapeLTR(previousButton, button)) {
-        console.log("RRRRR");
+      } 
+      else if (checkOutsideTop(previousButton, button)) {
+        console.log("TOP_OUTSIDE");
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
         hideTwoButtons(previousButton, button);
       } 
+      else if (checkOutsideBottom(previousButton, button)) {
+        console.log("BOTTOM_OUTSIDE");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkOutsideRight(previousButton, button)) {
+        console.log("RIGHT_OUTSIDE");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkOutsideLeft(previousButton, button)) {
+        console.log("LEFT_OUTSIDE");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkSquareLeftToRight(previousButton, button)) {
+        console.log("HÌNH VUÔNG T->P");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkSquareRightToLeft(previousButton, button)) {
+        console.log("HÌNH VUÔNG P->T");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkShapeL(previousButton, button)) {
+        console.log("SHAPE LLLLL");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      } 
+      else if (checkShapeU_Top(previousButton, button)){
+        console.log("TOP");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      }
+      else if(checkShapeU_Bottom(previousButton, button)){
+        console.log("BOTTOM");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      }
+      else if(checkShapeU_Right(previousButton, button) ){
+        console.log("RIGHT");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      }
+      else if (checkShapeU_Left(previousButton, button)){
+        console.log("LEFT");
+        changeImageNameToMinusOne(previousButton);
+        changeImageNameToMinusOne(button);
+        hideTwoButtons(previousButton, button);
+      }
       else if (checkRectX(previousButton, button)) {
         console.log("HCN XXXX");
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
         hideTwoButtons(previousButton, button);
-      } else if (checkRectY(previousButton, button)) {
+      } 
+      else if (checkRectY(previousButton, button)) {
         console.log("HCN YYYY");
         changeImageNameToMinusOne(previousButton);
         changeImageNameToMinusOne(button);
