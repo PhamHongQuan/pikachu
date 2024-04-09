@@ -1,6 +1,5 @@
 body {
   font-family: Arial, sans-serif;
-  display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
@@ -29,22 +28,4 @@ body {
   height: 100%;
   border: none; /* Remove default button border */
   background-size: cover;
-}
-
-@keyframes buttonClickAnimation {
-  0% {
-    transform: scale(1);
-    border: 1px solid red;
-  }
-  50% {
-    transform: scale(1.1);
-    border: 1px solid transparent;
-  }
-  100% {
-    transform: scale(1);
-    border: 1px solid red;
-  }
-}
-.button-clicked {
-  animation: buttonClickAnimation 0.5s ease;
 }/*# sourceMappingURL=style.css.map */
