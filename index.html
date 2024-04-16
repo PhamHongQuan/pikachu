@@ -4,38 +4,89 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pikachu</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   </head>
   <body>
     <div class="grid" id="grid"></div>
-    <br>
+    <br />
+    <div id="videoContainer">
+      <video id="videoPlayer" controls></video>
+    </div>
     <div class="btn-reset">
-      <button>Change position </button>
-      <button>Reset</button>
-      <button>Skip level</button>
+      <button id="change-position">Change position</button>
+      <button id="reset">Reset</button>
+      <button id="skip-level">Skip level</button>
     </div>
   </body>
 
   <!-- script -->
   <script src="script.js"></script>
 </html>
- 
 
- 
 <!-- 
   getPositionOfButton(button)
   return row:col
 -->
-
 
 <!-- 
   getButtonAtPposition(col, row)
   return button
  -->
 
- <!-- 
+<!-- 
   function checkLineX(startY, endY, column) 
 
   function checkLineY(startX, endX, row) 
 -->
+<!-- 
+ // Tạo button với hình ảnh
+  function createButton(imageName, level) {
+    // tạo ra đối tượng button
+    const button = $("<button></button>");
+    if (imageName === "-1") {
+      // button.text("-1");
+      button.css("background-image", `url('img/point.png')`);
+      button.data("imageName", "-1");
+    } else {
+      button.css("background-image", `url('img/${imageName}')`);
+      button.data("imageName", imageName);
+
+      // sự kiện click chọn  hình
+      button.click(function () {
+        logicGamePikachu($(this), level);
+        console.log("================================");
+      });
+    }
+    return button;
+  }
+// Tạo ma trận button
+  function createMatrix(level) {
+    if (level !== 4) {
+      for (let i = 0; i < ROWS; i++) {
+        for (let j = 0; j < COLS; j++) {
+          // tạo ra mỗi ô trong ma trận
+          const cell = $("<div></div>").addClass("cell");
+          let imageName;
+
+          // Nếu ở ngoài cùng thì giá trị button là -1, ngược lại là tên của hình ảnh
+          if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
+            imageName = "-1";
+          } else {
+            const random = Math.floor(Math.random() * IMAGE_NAMES.length);
+            imageName = IMAGE_NAMES[random];
+          }
+          // tạo ra button
+          const button = createButton(imageName, level);
+          // thêm button đó vào từng ô của ma trận
+          cell.append(button);
+          // thêm từng ô đó vào ma trận
+          GRID_CONTAINER.append(cell);
+        }
+      }
+    } else if (level === 4) {
+      clearMatrix();
+      createMatrixWithBoss();
+    }
+  }
+ -->

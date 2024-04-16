@@ -28,4 +28,76 @@ body {
   height: 100%;
   border: none; /* Remove default button border */
   background-size: cover;
+}
+
+.boss-button {
+  border: none;
+  background-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.boss-button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0%;
+  height: 0%;
+  z-index: 0;
+  animation: gradient-shadow 4s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-shadow {
+  0% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  10% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(61, 224, 170, 0.7);
+  }
+  20% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(111, 135, 201, 0.7);
+  }
+  30% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(142, 80, 201, 0.7);
+  }
+  40% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(222, 224, 61, 0.7);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(212, 46, 46, 0.7);
+  }
+  60% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(46, 123, 212, 0.7);
+  }
+  70% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(65, 212, 46, 0.7);
+  }
+  80% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(222, 224, 61, 0.7);
+  }
+  90% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
+    box-shadow: 0 0 20px 10px rgba(233, 82, 200, 0.7);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+}
+#videoContainer {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }/*# sourceMappingURL=style.css.map */
