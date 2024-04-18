@@ -10,24 +10,49 @@
 
   <body>
     <div id="progressContainer">
-      <progress id="progressBar" max="100"></progress>
+      <progress id="progressBar" max="180"></progress>
     </div>
-    <br>
-
+    <div id="scoreContainer">
+      <div id="levelContainer">
+        <span class="level">Level:</span> <span id="level">1</span>
+      </div>
+      <span class="score">Score:</span><span id="score">0</span>
+    </div>
     <div class="grid" id="grid"></div>
     <div id="videoContainer">
       <video id="videoPlayer" controls></video>
     </div>
     <div id="imgStart"></div>
-    <div class="btn-reset">
-      <button id="change-position">Change Position</button>
+    <div class="btn-group">
       <button id="reset">Reset</button>
       <button id="skip-level">Skip level</button>
     </div>
-  </body>
+    <!-- card chúc mừng -->
+    <div class="notification-card">
+      <div class="icon">
+        <img src="img/capPikachu.png" alt="" />
+      </div>
+      <div class="content">
+        <h2>Chúc mừng</h2>
+        <p>Bạn đang chuyển sang Level tiếp theo...</p>
+      </div>
+    </div>
 
-  <!-- script -->
-  <script src="script.js"></script>
+    <!-- card game over -->
+    <div class="game-over-card">
+      <div class="icon">
+        <img src="img/loss.png" alt="" />
+      </div>
+      <div class="content">
+        <h2>Game Over</h2>
+        <p>Your score: <span id="finalScore">0</span></p>
+        <button id="restartButton">Restart</button>
+      </div>
+    </div>
+
+    <!-- script -->
+    <script src="script.js"></script>
+  </body>
 </html>
 
 <!-- 

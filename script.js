@@ -6,11 +6,15 @@ $(document).ready(function () {
   const gridHeight = GRID_CONTAINER.height();
   const cellWidth = gridWidth / COLS;
   const cellHeight = gridHeight / ROWS;
+  let score = 0;
   let level = 1;
   let interval;
   var $skip = $("#skip-level");
   var $reset = $("#reset");
-  var $changePosition = $("#change-position");
+  // var $changePosition = $("#change-position");
+  var $nextButton = $("#next-level");
+  const card = document.querySelector(".notification-card");
+  var currentScore = parseInt($("#score").text());
   const IMAGE_NAMES = [
     "bulbasaur.png",
     "caterpie.png",
@@ -33,10 +37,10 @@ $(document).ready(function () {
     const progressBar = document.getElementById("progressBar");
     let currentTime = totalTime;
     const initialTime = totalTime;
-    interval = setInterval(() => { // Lưu trữ interval vào biến toàn cục
+    interval = setInterval(() => {
       currentTime--;
-      console.log(level, currentTime);
-      const progressPercentage = (currentTime / initialTime) * 100;
+      // console.log(level, currentTime);
+      const progressPercentage = (currentTime / initialTime) * 180;
       progressBar.value = progressPercentage;
       if (currentTime <= 0) {
         clearInterval(interval);
@@ -45,9 +49,9 @@ $(document).ready(function () {
   }
   // reset lại thanh progress
   function resetProgressBar() {
-    clearInterval(interval); // Sử dụng biến interval lưu trữ interval đã khởi tạo
+    clearInterval(interval);
     const progressBar = document.getElementById("progressBar");
-    progressBar.value = 100; // Đặt giá trị của thanh tiến trình về 100%
+    progressBar.value = 180;
   }
 
 
@@ -78,35 +82,29 @@ $(document).ready(function () {
 
   // Tạo ma trận button
   function createMatrix(level) {
-    if (level !== 4) {
-      for (let i = 0; i < ROWS; i++) {
-        for (let j = 0; j < COLS; j++) {
-          // tạo ra mỗi ô trong ma trận
-          const cell = $("<div></div>").addClass("cell");
-          let imageName;
-          // Nếu ở ngoài cùng thì giá trị button là -1, ngược lại là tên của hình ảnh
-          if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
-            imageName = "-1";
-          } else {
-            const random = Math.floor(Math.random() * IMAGE_NAMES.length);
-            imageName = IMAGE_NAMES[random];
-          }
-          // tạo ra button
-          const button = createButton(imageName, level);
-          // thêm button đó vào từng ô của ma trận
-          cell.append(button);
-          // thêm từng ô đó vào ma trận
-          GRID_CONTAINER.append(cell);
+    for (let i = 0; i < ROWS; i++) {
+      for (let j = 0; j < COLS; j++) {
+        // tạo ra mỗi ô trong ma trận
+        const cell = $("<div></div>").addClass("cell");
+        let imageName;
+        // Nếu ở ngoài cùng thì giá trị button là -1, ngược lại là tên của hình ảnh
+        if (i === 0 || i === ROWS - 1 || j === 0 || j === COLS - 1) {
+          imageName = "-1";
+        } else {
+          const random = Math.floor(Math.random() * IMAGE_NAMES.length);
+          imageName = IMAGE_NAMES[random];
         }
+        // tạo ra button
+        const button = createButton(imageName, level);
+        // thêm button đó vào từng ô của ma trận
+        cell.append(button);
+        // thêm từng ô đó vào ma trận
+        GRID_CONTAINER.append(cell);
       }
-    } else if (level === 4) {
-      clearMatrix();
-      createMatrixWithBoss();
     }
   }
 
   function clearMatrix() {
-    // Chọn tất cả các ô trong ma trận và xóa chúng
     $(".cell").remove();
   }
 
@@ -141,10 +139,7 @@ $(document).ready(function () {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
     // kiểm tra 2 button cùng hàng có khác nhau không
-    if (
-      position1.row === position2.row &&
-      position1.column !== position2.column
-    ) {
+    if (position1.row === position2.row && position1.column !== position2.column) {
       // kiểm tra phía trên cùng
       if (position1.row === 1 && position2.row === 1) {
         if (button1.data("imageName") === button2.data("imageName")) {
@@ -159,10 +154,7 @@ $(document).ready(function () {
       }
     }
     // kiểm tra 2 button cùng cột có khác nhau không
-    else if (
-      position1.column === position2.column &&
-      position1.row !== position2.row
-    ) {
+    else if (position1.column === position2.column && position1.row !== position2.row) {
       // kiểm tra bên trái
       if (position1.column === 1 && position2.column === 1) {
         if (button1.data("imageName") === button2.data("imageName")) {
@@ -220,8 +212,8 @@ $(document).ready(function () {
       for (let i = minButtonPosition.row - 1; i > 0; i--) {
         const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
         if (buttonsAbove.data("imageName") !== "-1") {
-          isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
-          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+          isValid = false;
+          break;
         }
       }
       // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
@@ -229,8 +221,8 @@ $(document).ready(function () {
         for (let i = maxButtonPosition.row - 1; i > 0; i--) {
           const buttonsAbove = getButtonAtPosition(maxButtonPosition.column, i);
           if (buttonsAbove.data("imageName") !== "-1") {
-            isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
-            break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+            isValid = false;
+            break;
           }
         }
       }
@@ -245,7 +237,7 @@ $(document).ready(function () {
           removeDrawOutsideInColumn_Top_Bottom(button2, "top");
         }, 100);
       }
-      return isValid; // Trả về kết quả kiểm tra
+      return isValid;
     }
     // vẽ 3 đường thẳng
     drawOutsideColumn_Top_Bottom(button1, "top");
@@ -297,12 +289,12 @@ $(document).ready(function () {
     // trường hợp 3: cả buttonMin và buttonMax đều không nằm ở hàng dưới cùng
     if (minButtonPosition.row !== 9 && maxButtonPosition.row !== 9) {
       // kiểm tra buttonMin
-      let isValid = true; // Giả sử ban đầu là hợp lệ
+      let isValid = true;
       for (let i = minButtonPosition.row + 1; i <= 9; i++) {
         const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
         if (buttonsAbove.data("imageName") !== "-1") {
-          isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
-          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+          isValid = false;
+          break;
         }
       }
       // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
@@ -310,8 +302,8 @@ $(document).ready(function () {
         for (let i = maxButtonPosition.row + 1; i <= 9; i++) {
           const buttonsAbove = getButtonAtPosition(maxButtonPosition.column, i);
           if (buttonsAbove.data("imageName") !== "-1") {
-            isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
-            break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+            isValid = false;
+            break;
           }
         }
       }
@@ -326,7 +318,7 @@ $(document).ready(function () {
           removeDrawOutsideInColumn_Top_Bottom(button2, "bottom");
         }, 100);
       }
-      return isValid; // Trả về kết quả kiểm tra
+      return isValid;
     }
     // vẽ 3 đường thẳng
     drawOutsideColumn_Top_Bottom(button1, "bottom");
@@ -377,13 +369,13 @@ $(document).ready(function () {
 
     // trường hợp 3: cả buttonMin và buttonMax đều không nằm ở ngoài cùng bên phải
     if (minButtonPosition.column !== 16 && maxButtonPosition.column !== 16) {
-      let isValid = true; // Giả sử ban đầu là hợp lệ
+      let isValid = true;
       // kiểm tra buttonMin
       for (let i = minButtonPosition.column + 1; i <= 16; i++) {
         const buttonRight = getButtonAtPosition(i, minButtonPosition.row);
         if (buttonRight.data("imageName") !== "-1") {
-          isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
-          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+          isValid = false;
+          break;
         }
       }
       // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
@@ -391,8 +383,8 @@ $(document).ready(function () {
         for (let i = maxButtonPosition.column + 1; i <= 16; i++) {
           const buttonRight = getButtonAtPosition(i, maxButtonPosition.row);
           if (buttonRight.data("imageName") !== "-1") {
-            isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
-            break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+            isValid = false;
+            break;
           }
         }
       }
@@ -406,7 +398,7 @@ $(document).ready(function () {
           removeDrawOutsideRow_Right_Left(button2, "right");
         }, 100);
       }
-      return isValid; // Trả về kết quả kiểm tra
+      return isValid;
     }
     drawOutsideColumn_Right_Left(button1, button2, "right");
     drawOutsideRow_Right_Left(button1, "right");
@@ -454,21 +446,21 @@ $(document).ready(function () {
     }
     // trường hợp 3: cả buttonMin và buttonMax đều không nằm ngoài cùng bên trái
     if (minButtonPosition.column !== 1 && maxButtonPosition.column !== 1) {
-      let isValid = true; // Giả sử ban đầu là hợp lệ
-      // kiểm tra buttonMin
+      let isValid = true;
+
       for (let i = minButtonPosition.column - 1; i > 0; i--) {
         const buttonLeft = getButtonAtPosition(i, minButtonPosition.row);
         if (buttonLeft.data("imageName") !== "-1") {
-          isValid = false; // Nếu gặp buttonMin không hợp lệ, đánh dấu là không hợp lệ
-          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+          isValid = false;
+          break;
         }
       }
-      // kiểm tra buttonMax nếu buttonMin vẫn hợp lệ
+
       for (let i = maxButtonPosition.column - 1; i > 0; i--) {
         const buttonLeft = getButtonAtPosition(i, maxButtonPosition.row);
         if (buttonLeft.data("imageName") !== "-1") {
-          isValid = false; // Nếu gặp buttonMax không hợp lệ, đánh dấu là không hợp lệ
-          break; // Thoát khỏi vòng lặp ngay khi gặp điều kiện không hợp lệ
+          isValid = false;
+          break;
         }
       }
       if (isValid) {
@@ -499,11 +491,7 @@ $(document).ready(function () {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
     // nếu 2 button nằm trên 1 cột, tên giống nhau và không phải là 1
-    if (
-      position1.column === position2.column &&
-      button1.data("imageName") === button2.data("imageName") &&
-      position1.row !== position2.row
-    ) {
+    if (position1.column === position2.column && button1.data("imageName") === button2.data("imageName") && position1.row !== position2.row) {
       const startRow = Math.min(position1.row, position2.row);
       const endRow = Math.max(position1.row, position2.row);
 
@@ -524,11 +512,7 @@ $(document).ready(function () {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
 
-    if (
-      position1.row === position2.row &&
-      button1.data("imageName") === button2.data("imageName") &&
-      position1.column !== position2.column
-    ) {
+    if (position1.row === position2.row && button1.data("imageName") === button2.data("imageName") && position1.column !== position2.column) {
       const startColumn = Math.min(position1.column, position2.column);
       const endColumn = Math.max(position1.column, position2.column);
 
@@ -569,7 +553,7 @@ $(document).ready(function () {
     if (reverse === false) {
       for (let x = startX; x < endX; x++) {
         const buttonInBetween = getButtonAtPosition(x, row);
-        // const b = getPositionOfButton(buttonInBetween);
+
         if (buttonInBetween.data("imageName") !== "-1") {
           return false;
         }
@@ -595,60 +579,22 @@ $(document).ready(function () {
         minButtonPosition = getPositionOfButton(button2);
         maxButtonPosition = getPositionOfButton(button1);
       }
-      if (
-        minButtonPosition.row === maxButtonPosition.row ||
-        minButtonPosition.column === maxButtonPosition.column
-      ) {
+      if (minButtonPosition.row === maxButtonPosition.row ||
+        minButtonPosition.column === maxButtonPosition.column) {
         return false;
       }
       for (let y = minButtonPosition.row; y <= maxButtonPosition.row; y++) {
         // Kiểm tra ba dòng
         if (minButtonPosition.column <= maxButtonPosition.column) {
-          if (
-            checkLineX(
-              minButtonPosition.row + 1,
-              y,
-              minButtonPosition.column,
-              false
-            ) &&
-            checkLineY(
-              minButtonPosition.column,
-              maxButtonPosition.column + 1,
-              y,
-              false
-            ) &&
-            checkLineX(
-              y,
-              maxButtonPosition.row,
-              maxButtonPosition.column,
-              false
-            )
-          ) {
-            console.log("eee");
+          if (checkLineX(minButtonPosition.row + 1, y, minButtonPosition.column, false) &&
+            checkLineY(minButtonPosition.column, maxButtonPosition.column + 1, y, false) &&
+            checkLineX(y, maxButtonPosition.row, maxButtonPosition.column, false)) {
             return true;
           }
         } else if (minButtonPosition.column > maxButtonPosition.column) {
-          if (
-            checkLineX(
-              minButtonPosition.row + 1,
-              y,
-              minButtonPosition.column,
-              false
-            ) &&
-            checkLineY(
-              maxButtonPosition.column,
-              minButtonPosition.column + 1,
-              y,
-              false
-            ) &&
-            checkLineX(
-              y,
-              maxButtonPosition.row,
-              maxButtonPosition.column,
-              false
-            )
-          ) {
-            console.log("eee");
+          if (checkLineX(minButtonPosition.row + 1, y, minButtonPosition.column, false) &&
+            checkLineY(maxButtonPosition.column, minButtonPosition.column + 1, y, false) &&
+            checkLineX(y, maxButtonPosition.row, maxButtonPosition.column, false)) {
             return true;
           }
         }
@@ -666,38 +612,21 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (
-      minButtonPosition.row === maxButtonPosition.row ||
-      minButtonPosition.column === maxButtonPosition.column
-    ) {
+    if (minButtonPosition.row === maxButtonPosition.row || minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
     for (let y = minButtonPosition.column; y <= maxButtonPosition.column; y++) {
       // Kiểm tra ba dòng
       if (minButtonPosition.row <= maxButtonPosition.row) {
-        if (
-          checkLineY(
-            minButtonPosition.column + 1,
-            y,
-            minButtonPosition.row,
-            false
-          ) &&
+        if (checkLineY(minButtonPosition.column + 1, y, minButtonPosition.row, false) &&
           checkLineX(minButtonPosition.row, maxButtonPosition.row, y, false) &&
-          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row, false)
-        ) {
+          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row, false)) {
           return true;
         }
       } else if (minButtonPosition.row > maxButtonPosition.row) {
-        if (
-          checkLineY(
-            minButtonPosition.column + 1,
-            y,
-            minButtonPosition.row,
-            false
-          ) &&
+        if (checkLineY(minButtonPosition.column + 1, y, minButtonPosition.row, false) &&
           checkLineX(maxButtonPosition.row, minButtonPosition.row, y, false) &&
-          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row, false)
-        ) {
+          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row, false)) {
           return true;
         }
       }
@@ -713,26 +642,15 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (
-      maxButtonPosition.column - minButtonPosition.column === 1 &&
-      maxButtonPosition.row - minButtonPosition.row === 1
-    ) {
-      const buttonTempRight = getButtonAtPosition(
-        minButtonPosition.column + 1,
-        minButtonPosition.row
-      );
-      const buttonTempBottom = getButtonAtPosition(
-        minButtonPosition.column,
-        minButtonPosition.row + 1
-      );
-      if (
-        buttonTempRight.data("imageName") === "-1" ||
-        buttonTempBottom.data("imageName") === "-1"
+
+    if (maxButtonPosition.column - minButtonPosition.column === 1 && maxButtonPosition.row - minButtonPosition.row === 1) {
+      const buttonTempRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
+      const buttonTempBottom = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row + 1);
+      if (buttonTempRight.data("imageName") === "-1" || buttonTempBottom.data("imageName") === "-1"
       ) {
         return true;
       }
     }
-
     return false;
   }
 
@@ -744,27 +662,14 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (
-      minButtonPosition.row - maxButtonPosition.row === 1 &&
-      maxButtonPosition.column - minButtonPosition.column === 1
-    ) {
-      const buttonTempTop = getButtonAtPosition(
-        minButtonPosition.column,
-        minButtonPosition.row - 1
-      );
-      const buttonTempRight = getButtonAtPosition(
-        minButtonPosition.column + 1,
-        minButtonPosition.row
-      );
 
-      if (
-        buttonTempTop.data("imageName") === "-1" ||
-        buttonTempRight.data("imageName") === "-1"
-      ) {
+    if (minButtonPosition.row - maxButtonPosition.row === 1 && maxButtonPosition.column - minButtonPosition.column === 1) {
+      const buttonTempTop = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row - 1);
+      const buttonTempRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
+      if (buttonTempTop.data("imageName") === "-1" || buttonTempRight.data("imageName") === "-1") {
         return true;
       }
     }
-
     return false;
   }
 
@@ -781,46 +686,20 @@ $(document).ready(function () {
     let flag = false;
     // KIỂM TRA CHỮ L (XUẤT PHÁT THEO CHIỀU NGANG)
     // kiểm tra từ min->cột của max, nếu trên hàng đó không có vật cản thì xét tiếp
-    if (
-      checkLineY(
-        minButtonPosition.column + 1,
-        maxButtonPosition.column + 1,
-        minButtonPosition.row,
-        false
-      )
-    ) {
-      const buttonTemp = getButtonAtPosition(
-        maxButtonPosition.column,
-        minButtonPosition.row
-      );
+    if (checkLineY(minButtonPosition.column + 1, maxButtonPosition.column + 1, minButtonPosition.row, false)) {
+      const buttonTemp = getButtonAtPosition(maxButtonPosition.column, minButtonPosition.row);
       // buttonTempPosition: vị trí mà hàm checkLineX sẽ chạy từ max hoặc đến max
       const buttonTempPosition = getPositionOfButton(buttonTemp);
       // nếu dòng của max < dòng min => chạy từ dòng max tới dòng của temp trên cột max
       if (maxButtonPosition.row < minButtonPosition.row) {
-        if (
-          checkLineX(
-            maxButtonPosition.row + 1,
-            buttonTempPosition.row + 1,
-            maxButtonPosition.column,
-            false
-          )
-        ) {
-          console.log("L SANG PHẢI LÊN TRÊN");
+        if (checkLineX(maxButtonPosition.row + 1, buttonTempPosition.row + 1, maxButtonPosition.column, false)) {
           flag = true;
         } else {
           flag = false;
         }
       } else if (maxButtonPosition.row > minButtonPosition.row) {
         // chạy từ hàng của temp đến max trên cột max
-        if (
-          checkLineX(
-            buttonTempPosition.row,
-            maxButtonPosition.row,
-            maxButtonPosition.column,
-            false
-          )
-        ) {
-          console.log("L SANG PHẢI XUỐNG DƯỚI");
+        if (checkLineX(buttonTempPosition.row, maxButtonPosition.row, maxButtonPosition.column, false)) {
           flag = true;
         } else {
           flag = false;
@@ -830,32 +709,10 @@ $(document).ready(function () {
     // KIỂM TRA CHỮ L (XUẤT PHÁT THEO CHIỀU DỌC)
     // kiểm tra từ hàng min-> max (phía dưới buttonMin)
     else if (maxButtonPosition.row > minButtonPosition.row) {
-      if (
-        checkLineX(
-          minButtonPosition.row + 1,
-          maxButtonPosition.row + 1,
-          minButtonPosition.column,
-          false
-        )
-      ) {
-        const buttonTemp = getButtonAtPosition(
-          minButtonPosition.column,
-          maxButtonPosition.row
-        );
+      if (checkLineX(minButtonPosition.row + 1, maxButtonPosition.row + 1, minButtonPosition.column, false)) {
+        const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
         const buttonTempPosition = getPositionOfButton(buttonTemp);
-        if (
-          checkLineY(
-            buttonTempPosition.column,
-            maxButtonPosition.column,
-            maxButtonPosition.row,
-            false
-          )
-        ) {
-          console.log(
-            "L XUỐNG DƯỚI SANG PHẢI",
-            buttonTempPosition.row,
-            buttonTempPosition.column
-          );
+        if (checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row,)) {
           flag = true;
         } else {
           flag = false;
@@ -864,34 +721,10 @@ $(document).ready(function () {
     }
     // kiểm tra từ hàng min->hàng max(phía trên button min)
     else if (maxButtonPosition.row < minButtonPosition.row) {
-      if (
-        checkLineX(
-          maxButtonPosition.row,
-          minButtonPosition.row,
-          minButtonPosition.column,
-          false
-        )
-      ) {
-        const buttonTemp = getButtonAtPosition(
-          minButtonPosition.column,
-          maxButtonPosition.row
-        );
+      if (checkLineX(maxButtonPosition.row, minButtonPosition.row, minButtonPosition.column, false)) {
+        const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
         const buttonTempPosition = getPositionOfButton(buttonTemp);
-        console.log("MAX: ", maxButtonPosition.row, maxButtonPosition.column);
-        console.log("MIN: ", minButtonPosition.row, minButtonPosition.column);
-        if (
-          checkLineY(
-            buttonTempPosition.column,
-            maxButtonPosition.column,
-            maxButtonPosition.row,
-            false
-          )
-        ) {
-          console.log(
-            "L LÊN TRÊN SANG PHẢI: ",
-            buttonTempPosition.row,
-            buttonTempPosition.column
-          );
+        if (checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row, false)) {
           flag = true;
         } else {
           flag = false;
@@ -910,10 +743,7 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (
-      minButtonPosition.row === maxButtonPosition.row &&
-      minButtonPosition.column === maxButtonPosition.column
-    ) {
+    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
 
@@ -926,85 +756,34 @@ $(document).ready(function () {
         var buttonTest = getButtonAtPosition(j, i);
         var buttonTestPosition = getPositionOfButton(buttonTest);
         if (buttonTest.data("imageName") !== "-1") {
-          if (
-            !buttonMinColumn ||
-            buttonTestPosition.column < buttonMinColumnPositionTemp.column
-          ) {
+          if (!buttonMinColumn || buttonTestPosition.column < buttonMinColumnPositionTemp.column) {
             buttonMinColumn = buttonTest;
             buttonMinColumnPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMinColumn
           }
         }
-        // if (buttonTest.data('imageName') === '-1') {
-        //   break;
-        // }
-        // console.log('min: ', buttonTestPosition.row, buttonTestPosition.column);
-        if (
-          checkLineY(
-            buttonTestPosition.column,
-            maxButtonPosition.column,
-            maxButtonPosition.row,
-            true
-          ) &&
-          checkLineY(
-            buttonTestPosition.column,
-            minButtonPosition.column,
-            minButtonPosition.row,
-            true
-          ) &&
-          checkLineX(
-            minButtonPosition.row,
-            maxButtonPosition.row,
-            buttonMinColumnPositionTemp.column - 1,
-            false
-          )
-        ) {
+
+        if (checkLineY(buttonTestPosition.column, maxButtonPosition.column, maxButtonPosition.row, true) &&
+          checkLineY(buttonTestPosition.column, minButtonPosition.column, minButtonPosition.row, true) &&
+          checkLineX(minButtonPosition.row, maxButtonPosition.row, buttonMinColumnPositionTemp.column - 1, false)) {
           break;
         }
+
       }
     }
     var buttonMinColumPosition = getPositionOfButton(buttonMinColumn);
-    console.log(
-      "Min column",
-      buttonMinColumPosition.row,
-      buttonMinColumPosition.column
-    );
     // kiểm tra chữ U bắt đầu từ bên phải buttonMax
     // duyệt từ bên phải buttonMax đến hết dòng đó
     // trên đường đi đó, xét button đầu tiên có giá trị làm buttonTemp1
     // lấy ra giao điểm đầu tiên
     var buttonIntersection;
-    for (
-      let i = maxButtonPosition.column + 1;
-      i <= buttonMinColumPosition.column;
-      i++
-    ) {
+    for (let i = maxButtonPosition.column + 1; i <= buttonMinColumPosition.column; i++) {
       buttonIntersection = getButtonAtPosition(i - 1, maxButtonPosition.row);
     }
     const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    if (
-      buttonIntersectionPosition.row !== -1 &&
-      buttonIntersectionPosition.column !== -1
-    ) {
-      if (
-        checkLineY(
-          maxButtonPosition.column + 1,
-          buttonIntersection.column + 1,
-          maxButtonPosition.row,
-          false
-        ) &&
-        checkLineX(
-          minButtonPosition.row,
-          buttonIntersectionPosition.row + 1,
-          buttonIntersectionPosition.column,
-          false
-        ) &&
-        checkLineY(
-          minButtonPosition.column + 1,
-          buttonIntersectionPosition.column + 1,
-          minButtonPosition.row,
-          false
-        )
-      ) {
+    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
+      if (checkLineY(maxButtonPosition.column + 1, buttonIntersection.column + 1, maxButtonPosition.row, false) &&
+        checkLineX(minButtonPosition.row, buttonIntersectionPosition.row + 1, buttonIntersectionPosition.column, false) &&
+        checkLineY(minButtonPosition.column + 1, buttonIntersectionPosition.column + 1, minButtonPosition.row, false)) {
         return true;
       }
     }
@@ -1022,10 +801,7 @@ $(document).ready(function () {
       maxButtonPosition = getPositionOfButton(button1);
     }
 
-    if (
-      minButtonPosition.row === maxButtonPosition.row &&
-      minButtonPosition.column === maxButtonPosition.column
-    ) {
+    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
 
@@ -1038,83 +814,31 @@ $(document).ready(function () {
         var buttonTest = getButtonAtPosition(j, i);
         var buttonTestPosition = getPositionOfButton(buttonTest);
         if (buttonTest.data("imageName") !== "-1") {
-          if (
-            !buttonMaxColumn ||
-            buttonTestPosition.column > buttonMaxColumnPositionTemp.column
-          ) {
+          if (!buttonMaxColumn || buttonTestPosition.column > buttonMaxColumnPositionTemp.column) {
             buttonMaxColumn = buttonTest;
             buttonMaxColumnPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMaxColumn
           }
         }
-        // if (buttonTest.data('imageName') === '-1') {
-        //   break;
-        // }
-        // console.log('max: ', buttonMaxColumnPositionTemp.row, buttonMaxColumnPositionTemp.column);
-        if (
-          checkLineY(
-            buttonTestPosition.column,
-            maxButtonPosition.column,
-            maxButtonPosition.row,
-            false
-          ) &&
-          checkLineY(
-            buttonTestPosition.column,
-            minButtonPosition.column,
-            minButtonPosition.row,
-            false
-          ) &&
-          checkLineX(
-            minButtonPosition.row,
-            maxButtonPosition.row,
-            buttonMaxColumnPositionTemp.column + 1,
-            false
-          )
-        ) {
+        if (checkLineY(buttonTestPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
+          checkLineY(buttonTestPosition.column, minButtonPosition.column, minButtonPosition.row, false) &&
+          checkLineX(minButtonPosition.row, maxButtonPosition.row, buttonMaxColumnPositionTemp.column + 1, false)) {
           break;
         }
       }
     }
     var buttonMinColumPosition = getPositionOfButton(buttonMaxColumn);
-    // console.log('maxColumn: ', buttonMinColumPosition.row, buttonMinColumPosition.column);
+
 
     var buttonIntersection;
-    for (
-      let i = maxButtonPosition.column - 1;
-      i >= buttonMinColumPosition.column;
-      i--
-    ) {
-      // const buttonBarrier = getButtonAtPosition(i, maxButtonPosition.row);
-      // if(buttonBarrier.data('imageName') !== '-1'){
+    for (let i = maxButtonPosition.column - 1; i >= buttonMinColumPosition.column; i--) {
       buttonIntersection = getButtonAtPosition(i + 1, maxButtonPosition.row);
-      //   break;
-      // }
     }
     const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    // console.log('mốc: ', buttonIntersectionPosition.row, buttonIntersectionPosition.column);
-    if (
-      buttonIntersectionPosition.row !== -1 &&
-      buttonIntersectionPosition.column !== -1
-    ) {
-      if (
-        checkLineY(
-          buttonIntersectionPosition.column,
-          maxButtonPosition.column,
-          maxButtonPosition.row,
-          false
-        ) &&
-        checkLineX(
-          minButtonPosition.row,
-          buttonIntersectionPosition.row + 1,
-          buttonIntersectionPosition.column,
-          false
-        ) &&
-        checkLineY(
-          buttonIntersectionPosition.column,
-          minButtonPosition.column,
-          minButtonPosition.row,
-          false
-        )
-      ) {
+
+    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
+      if (checkLineY(buttonIntersectionPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
+        checkLineX(minButtonPosition.row, buttonIntersectionPosition.row + 1, buttonIntersectionPosition.column, false) &&
+        checkLineY(buttonIntersectionPosition.column, minButtonPosition.column, minButtonPosition.row, false)) {
         return true;
       }
     }
@@ -1130,10 +854,7 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (
-      minButtonPosition.row === maxButtonPosition.row &&
-      minButtonPosition.column === maxButtonPosition.column
-    ) {
+    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
 
@@ -1146,78 +867,29 @@ $(document).ready(function () {
         var buttonTestPosition = getPositionOfButton(buttonTest);
         if (buttonTest.data("imageName") !== "-1") {
           // Nếu buttonMaxRow chưa được gán hoặc vị trí hàng của buttonTest lớn hơn vị trí hàng của buttonMaxRow
-          if (
-            !buttonMaxRow ||
-            buttonTestPosition.row > buttonMaxRowPositionTemp.row
-          ) {
+          if (!buttonMaxRow || buttonTestPosition.row > buttonMaxRowPositionTemp.row) {
             buttonMaxRow = buttonTest;
             buttonMaxRowPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMaxRow
           }
         }
-        // if (buttonTest.data('imageName') === '-1') {
-        //     break;
-        // }
 
-        if (
-          checkLineX(
-            buttonTestPosition.row,
-            maxButtonPosition.row,
-            maxButtonPosition.column,
-            false
-          ) &&
-          checkLineX(
-            buttonTestPosition.row,
-            minButtonPosition.row,
-            minButtonPosition.column,
-            false
-          ) &&
-          checkLineY(
-            minButtonPosition.row,
-            maxButtonPosition.row,
-            buttonMaxRowPositionTemp.row + 1,
-            false
-          )
-        ) {
-          console.log("ee");
+        if (checkLineX(buttonTestPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
+          checkLineX(buttonTestPosition.row, minButtonPosition.row, minButtonPosition.column, false) &&
+          checkLineY(minButtonPosition.row, maxButtonPosition.row, buttonMaxRowPositionTemp.row + 1, false)) {
           break;
         }
       }
     }
     var buttonMaxRowPosition = getPositionOfButton(buttonMaxRow);
-    console.log(
-      "max row",
-      buttonMaxRowPosition.row,
-      buttonMaxRowPosition.column
-    );
     var buttonIntersection = null;
     for (let i = maxButtonPosition.row - 1; i > buttonMaxRowPosition.row; i--) {
       buttonIntersection = getButtonAtPosition(maxButtonPosition.column, i);
     }
     const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    if (
-      buttonIntersectionPosition.row !== -1 &&
-      buttonIntersectionPosition.column !== -1
-    ) {
-      if (
-        checkLineX(
-          buttonIntersectionPosition.row,
-          maxButtonPosition.row,
-          maxButtonPosition.column,
-          false
-        ) &&
-        checkLineY(
-          minButtonPosition.column,
-          maxButtonPosition.column + 1,
-          buttonIntersectionPosition.row,
-          false
-        ) &&
-        checkLineX(
-          buttonIntersectionPosition.row,
-          minButtonPosition.row,
-          minButtonPosition.column,
-          false
-        )
-      ) {
+    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
+      if (checkLineX(buttonIntersectionPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
+        checkLineY(minButtonPosition.column, maxButtonPosition.column + 1, buttonIntersectionPosition.row, false) &&
+        checkLineX(buttonIntersectionPosition.row, minButtonPosition.row, minButtonPosition.column, false)) {
         return true;
       }
     }
@@ -1233,10 +905,7 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (
-      minButtonPosition.row === maxButtonPosition.row &&
-      minButtonPosition.column === maxButtonPosition.column
-    ) {
+    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
 
@@ -1248,10 +917,7 @@ $(document).ready(function () {
         var buttonTestPosition = getPositionOfButton(buttonTest);
         if (buttonTest.data("imageName") !== "-1") {
           // Nếu buttonMinRow chưa được gán hoặc vị trí hàng của buttonTest lớn hơn vị trí hàng của buttonMinRow
-          if (
-            !buttonMinRow ||
-            buttonTestPosition.row < buttonMinRowPositionTemp.row
-          ) {
+          if (!buttonMinRow || buttonTestPosition.row < buttonMinRowPositionTemp.row) {
             buttonMinRow = buttonTest;
             buttonMinRowPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMinRow
           }
@@ -1268,30 +934,10 @@ $(document).ready(function () {
       buttonIntersection = getButtonAtPosition(maxButtonPosition.column, i);
     }
     const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    if (
-      buttonIntersectionPosition.row !== -1 &&
-      buttonIntersectionPosition.column !== -1
-    ) {
-      if (
-        checkLineX(
-          maxButtonPosition.row + 1,
-          buttonIntersectionPosition.row + 1,
-          maxButtonPosition.column,
-          false
-        ) &&
-        checkLineY(
-          minButtonPosition.column,
-          maxButtonPosition.column + 1,
-          buttonIntersectionPosition.row,
-          false
-        ) &&
-        checkLineX(
-          minButtonPosition.row + 1,
-          buttonIntersectionPosition.row + 1,
-          minButtonPosition.column,
-          false
-        )
-      ) {
+    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
+      if (checkLineX(maxButtonPosition.row + 1, buttonIntersectionPosition.row + 1, maxButtonPosition.column, false) &&
+        checkLineY(minButtonPosition.column, maxButtonPosition.column + 1, buttonIntersectionPosition.row, false) &&
+        checkLineX(minButtonPosition.row + 1, buttonIntersectionPosition.row + 1, minButtonPosition.column, false)) {
         return true;
       }
     }
@@ -1306,10 +952,7 @@ $(document).ready(function () {
       // Thay đổi màu nền của previousButton thành màu xám
       previousButton.css("background-color", "gray");
     } else {
-      if (
-        button !== previousButton &&
-        previousButton.data("imageName") === button.data("imageName")
-      ) {
+      if (button !== previousButton && previousButton.data("imageName") === button.data("imageName")) {
         const previousButtonPosition = getPositionOfButton(previousButton);
         const buttonPosition = getPositionOfButton(button);
 
@@ -1317,11 +960,7 @@ $(document).ready(function () {
         // kiểm tra trên 1 cột =>  hàng tăng dần
         if (checkColumn(previousButton, button)) {
           console.log("kiểm tra cột");
-          drawInColumn(
-            previousButtonPosition.row,
-            buttonPosition.row,
-            buttonPosition.column
-          );
+          drawInColumn(previousButtonPosition.row, buttonPosition.row, buttonPosition.column);
           setTimeout(function () {
             removeDrawColumn(
               previousButtonPosition.row,
@@ -1336,12 +975,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               console.log("case 2 nè");
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
@@ -1349,6 +994,9 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1365,19 +1013,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3")
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 console.log("case 4 nè");
               }
               break;
@@ -1387,12 +1047,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1419,12 +1085,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               console.log("case 2 nè");
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
@@ -1432,6 +1104,9 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1448,19 +1123,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 console.log("case 4 nè");
               }
               break;
@@ -1470,12 +1157,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1487,44 +1180,23 @@ $(document).ready(function () {
           let type = "";
           if (previousButtonPosition.row === 1 && buttonPosition.row === 1) {
             type = "top";
-          } else if (
-            previousButtonPosition.row === 9 &&
-            buttonPosition.row === 9
-          ) {
+          } else if (previousButtonPosition.row === 9 && buttonPosition.row === 9) {
             type = "bottom";
-          } else if (
-            previousButtonPosition.column === 1 &&
-            buttonPosition.column === 1
-          ) {
+          } else if (previousButtonPosition.column === 1 && buttonPosition.column === 1) {
             type = "left";
-          } else if (
-            previousButtonPosition.column === 16 &&
-            buttonPosition.column === 16
-          ) {
+          } else if (previousButtonPosition.column === 16 && buttonPosition.column === 16) {
             type = "right";
           }
           //vẽ và xóa vùng bên ngoài
           if (type === "top" || type === "bottom") {
             drawOutsideInRow(previousButton, button, type);
             setTimeout(function () {
-              removeRowOutside(
-                previousButtonPosition.row,
-                previousButtonPosition.column,
-                buttonPosition.row,
-                buttonPosition.column,
-                type
-              );
+              removeRowOutside(previousButtonPosition.row, previousButtonPosition.column, buttonPosition.row, buttonPosition.column, type);
             }, 100);
           } else if (type === "left" || type === "right") {
             drawOutsideInColumn(previousButton, button, type);
             setTimeout(function () {
-              removeColumnOutside(
-                previousButtonPosition.row,
-                previousButtonPosition.column,
-                buttonPosition.row,
-                buttonPosition.column,
-                type
-              );
+              removeColumnOutside(previousButtonPosition.row, previousButtonPosition.column, buttonPosition.row, buttonPosition.column, type);
             }, 100);
           }
           switch (level) {
@@ -1533,12 +1205,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               console.log("case 2 nè");
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
@@ -1546,6 +1224,9 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1562,19 +1243,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 console.log("case 4 nè");
               }
               break;
@@ -1584,12 +1277,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1598,15 +1297,9 @@ $(document).ready(function () {
         // kiểm tra hình vuông từ trái sang phải
         else if (checkSquareLeftToRight(previousButton, button)) {
           console.log("HÌNH VUÔNG T->P");
-
           drawRectLeftToRight(previousButton, button);
           setTimeout(function () {
-            removeDrawRectLeftToRight(
-              previousButtonPosition.column,
-              previousButtonPosition.row,
-              buttonPosition.column,
-              buttonPosition.row
-            );
+            removeDrawRectLeftToRight(previousButtonPosition.column, previousButtonPosition.row, buttonPosition.column, buttonPosition.row);
           }, 100);
 
           switch (level) {
@@ -1615,12 +1308,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               console.log("case 2 nè");
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
@@ -1628,6 +1327,9 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1644,19 +1346,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 console.log("case 4 nè");
               }
               break;
@@ -1666,12 +1380,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1682,12 +1402,7 @@ $(document).ready(function () {
           console.log("HÌNH VUÔNG P->T");
           drawRectRightToLeft(previousButton, button);
           setTimeout(function () {
-            removeDrawRectRightToLeft(
-              previousButtonPosition.column,
-              previousButtonPosition.row,
-              buttonPosition.column,
-              buttonPosition.row
-            );
+            removeDrawRectRightToLeft(previousButtonPosition.column, previousButtonPosition.row, buttonPosition.column, buttonPosition.row);
           }, 100);
 
           switch (level) {
@@ -1696,12 +1411,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               console.log("case 2 nè");
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
@@ -1709,6 +1430,9 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1718,21 +1442,36 @@ $(document).ready(function () {
               if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
                 videoPath = "video/diaAnimation.mp4";
                 imagePath = "img/diaStart.png";
+                showVideo(videoPath, imagePath);
+                actionOfDia();
+                changeImageNameToMinusOne(previousButton);
+                changeImageNameToMinusOne(button);
+                previousButton.removeClass("boss-button");
+                button.removeClass("boss-button");
+                hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
+                const buttonTemp = previousButton;
                 setTimeout(() => {
-                  actionOfSol(previousButton);
-                  console.log(previousButton.data("imageName"));
-                  console.log(button.data("imageName"));
+                  actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               }
-
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
               console.log("case 4 nè");
               break;
             case 5:
@@ -1741,12 +1480,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1760,17 +1505,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1787,19 +1541,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -1808,12 +1574,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1827,17 +1599,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1854,19 +1635,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -1875,12 +1668,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1892,17 +1691,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1919,19 +1727,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -1940,12 +1760,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -1957,17 +1783,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -1984,19 +1819,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2005,12 +1852,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2023,17 +1876,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2050,19 +1912,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2071,12 +1945,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2089,17 +1969,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2116,19 +2005,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2137,12 +2038,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2155,17 +2062,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2182,19 +2098,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2203,12 +2131,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2221,17 +2155,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2248,19 +2191,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2269,12 +2224,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2287,17 +2248,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2314,19 +2284,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2335,12 +2317,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2353,17 +2341,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2380,19 +2377,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2401,12 +2410,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2419,17 +2434,26 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 2:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               dropButton();
               break;
             case 3:
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               deleteMatrix();
               createMatrixWithPoint();
               break;
@@ -2446,19 +2470,31 @@ $(document).ready(function () {
                 previousButton.removeClass("boss-button");
                 button.removeClass("boss-button");
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
               } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
                 videoPath = "video/solAnimation.mp4";
                 imagePath = "img/solStart.png";
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 showVideo(videoPath, imagePath);
                 const buttonTemp = previousButton;
                 setTimeout(() => {
                   actionOfSol(buttonTemp);
                   actionOfSol(button);
-                }, 12000);
+                  loadSound("sound/boom.mp3", 0.1);
+                  increaseScore();
+                  updateScoreInView();
+                }, 13000);
               } else {
                 changeImageNameToMinusOne(previousButton);
                 changeImageNameToMinusOne(button);
                 hideTwoButtons(previousButton, button);
+                loadSound("sound/correct.mp3", 0.1);
+                increaseScore();
+                updateScoreInView();
                 break;
               }
             case 5:
@@ -2467,12 +2503,18 @@ $(document).ready(function () {
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             case 6:
               console.log('case 6 nè');
               changeImageNameToMinusOne(previousButton);
               changeImageNameToMinusOne(button);
               hideTwoButtons(previousButton, button);
+              loadSound("sound/correct.mp3", 0.1);
+              increaseScore();
+              updateScoreInView();
               break;
             default:
               break;
@@ -2481,12 +2523,14 @@ $(document).ready(function () {
           // changeImageNameToMinusOne(previousButton);
           // changeImageNameToMinusOne(button);
           // hideTwoButtons(previousButton, button);
+          loadSound("sound/uncorrect.mp3", 0.1);
           console.log("đéo có cái nào đc");
           previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
           previousButton = null;
         }
         previousButton = null;
       } else {
+        loadSound("sound/uncorrect.mp3", 0.1);
         previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
         previousButton = null;
       }
@@ -2503,6 +2547,18 @@ $(document).ready(function () {
   function changeImageNameToMinusOne(button) {
     button.data("imageName", "-1");
   }
+
+  // hàm âm thanh khi ăn đúng
+  function loadSound(url, volume = 0.1, autoplay = true) {
+    var audio = new Audio();
+    audio.src = url;
+    if (autoplay) {
+      audio.autoplay = true;
+    }
+    return audio;
+  }
+
+
 
   // LV2: DROP BUTTON
   // hàm dồn lên trên khi cột trống => áp dụng cho lv2
@@ -2546,23 +2602,12 @@ $(document).ready(function () {
 
       // Cập nhật giá trị của các button ở dưới
       for (let j = buttonInArrayPosition.row + 1; j <= 9; j++) {
-        const buttonIndex = getButtonAtPosition(
-          buttonInArrayPosition.column,
-          j
-        );
-        const aboveButton = getButtonAtPosition(
-          buttonInArrayPosition.column,
-          j + 1
-        );
+        const buttonIndex = getButtonAtPosition(buttonInArrayPosition.column, j);
+        const aboveButton = getButtonAtPosition(buttonInArrayPosition.column, j + 1);
         let aboveName = aboveButton.data("imageName");
-        console.log("above", aboveName);
-        if (
-          aboveName === "-1" ||
-          aboveName === null ||
-          aboveName === "undefined"
-        ) {
-          // Kiểm tra xem aboveName đã được gán giá trị hay chưa
-          aboveName = "point.png"; // Gán giá trị mặc định nếu aboveName không được định nghĩa
+        // console.log("above", aboveName);
+        if (aboveName === "-1" || aboveName === null || aboveName === "undefined") {
+          aboveName = "point.png";
         }
         buttonIndex.data("imageName", aboveName);
         buttonIndex.css("background-image", `url('img/${aboveName}')`);
@@ -2615,10 +2660,10 @@ $(document).ready(function () {
   // hàm tạo ra ma trận với 4 button Boss
   function createMatrixWithBoss() {
     var imageBoss = ["solgaleo.png", "dialga.png"];
-    var solgaleoCount = 0; // Đếm số lượng Solgaleo đã được tạo
-    var dialgaCount = 0; // Đếm số lượng Dialga đã được tạo
-    var maxBossCount = 2; // Số lượng button tối đa cho mỗi loại boss
-    var bossPositions = getRandomBossPositions(); // Lấy vị trí ngẫu nhiên cho boss
+    var solgaleoCount = 0;
+    var dialgaCount = 0;
+    var maxBossCount = 2;
+    var bossPositions = getRandomBossPositions();
     for (var i = 0; i < ROWS; i++) {
       for (var j = 0; j < COLS; j++) {
         var cell = $("<div></div>").addClass("cell");
@@ -2627,22 +2672,16 @@ $(document).ready(function () {
           imageName = "-1";
         } else {
           // Kiểm tra xem cần tạo boss nào, solgaleo hay dialga
-          if (
-            solgaleoCount < maxBossCount &&
-            imageBoss.indexOf("solgaleo.png") !== -1 &&
+          if (solgaleoCount < maxBossCount && imageBoss.indexOf("solgaleo.png") !== -1 &&
             bossPositions.some(function (pos) {
               return pos.row === i && pos.col === j;
-            })
-          ) {
+            })) {
             imageName = "solgaleo.png";
             solgaleoCount++;
-          } else if (
-            dialgaCount < maxBossCount &&
-            imageBoss.indexOf("dialga.png") !== -1 &&
+          } else if (dialgaCount < maxBossCount && imageBoss.indexOf("dialga.png") !== -1 &&
             bossPositions.some(function (pos) {
               return pos.row === i && pos.col === j;
-            })
-          ) {
+            })) {
             imageName = "dialga.png";
             dialgaCount++;
           } else {
@@ -2720,6 +2759,7 @@ $(document).ready(function () {
         }
       }
     }
+    score += 5;
   }
   // hành động của boss Dia
   function actionOfDia() {
@@ -2729,8 +2769,11 @@ $(document).ready(function () {
   function pauseProgressBar() {
     clearInterval(interval);
     setTimeout(() => {
-      startProgressBar(100);
-    }, 9000);
+      startProgressBar(180);
+      setTimeout(() => {
+        loadSound("sound/increase.mp3", 0.1);
+      }, 1000);
+    }, 9500);
   }
 
 
@@ -2900,11 +2943,7 @@ $(document).ready(function () {
     buttonEnd.css("background-color", "red");
     let buttonInBetween = null;
     if (buttonStartPosition.column < buttonEndPosition.column) {
-      for (
-        let i = buttonStartPosition.column;
-        i <= buttonEndPosition.column;
-        i++
-      ) {
+      for (let i = buttonStartPosition.column; i <= buttonEndPosition.column; i++) {
         if (type === "top") {
           buttonInBetween = getButtonAtPosition(i, 0);
         } else if (type === "bottom") {
@@ -2914,11 +2953,7 @@ $(document).ready(function () {
       }
     }
     if (buttonStartPosition.column > buttonEndPosition.column) {
-      for (
-        let i = buttonStartPosition.column;
-        i >= buttonEndPosition.column;
-        i--
-      ) {
+      for (let i = buttonStartPosition.column; i >= buttonEndPosition.column; i--) {
         if (type === "top") {
           buttonInBetween = getButtonAtPosition(i, 0);
         } else if (type === "bottom") {
@@ -2958,13 +2993,7 @@ $(document).ready(function () {
   }
   // đặt lại outside ROW
   function removeRowOutside(
-    previousRow,
-    previousColumn,
-    buttonRow,
-    buttonColumn,
-    type
-  ) {
-    console.log("ê");
+    previousRow, previousColumn, buttonRow, buttonColumn, type) {
     const buttonStart = getButtonAtPosition(previousColumn, previousRow);
     const buttonEnd = getButtonAtPosition(buttonColumn, buttonRow);
 
@@ -2976,11 +3005,7 @@ $(document).ready(function () {
 
     let buttonInBetween = null;
     if (buttonStartPosition.column < buttonEndPosition.column) {
-      for (
-        let i = buttonStartPosition.column;
-        i <= buttonEndPosition.column;
-        i++
-      ) {
+      for (let i = buttonStartPosition.column; i <= buttonEndPosition.column; i++) {
         if (type === "top") {
           buttonInBetween = getButtonAtPosition(i, 0);
         } else if (type === "bottom") {
@@ -2990,11 +3015,7 @@ $(document).ready(function () {
       }
     }
     if (buttonStartPosition.column > buttonEndPosition.column) {
-      for (
-        let i = buttonStartPosition.column;
-        i >= buttonEndPosition.column;
-        i--
-      ) {
+      for (let i = buttonStartPosition.column; i >= buttonEndPosition.column; i--) {
         if (type === "top") {
           buttonInBetween = getButtonAtPosition(i, 0);
         } else if (type === "bottom") {
@@ -3005,13 +3026,7 @@ $(document).ready(function () {
     }
   }
   // đặt lại outside COLUMN
-  function removeColumnOutside(
-    previousRow,
-    previousColumn,
-    buttonRow,
-    buttonColumn,
-    type
-  ) {
+  function removeColumnOutside(previousRow, previousColumn, buttonRow, buttonColumn, type) {
     const buttonStart = getButtonAtPosition(previousColumn, previousRow);
     const buttonEnd = getButtonAtPosition(buttonColumn, buttonRow);
 
@@ -3028,7 +3043,6 @@ $(document).ready(function () {
         } else if (type === "right") {
           buttonInBetween = getButtonAtPosition(17, i);
         }
-        console.log("<<<<<");
         buttonInBetween.css("background-color", "");
       }
     } else if (buttonStartPosition.row > buttonEndPosition.row) {
@@ -3038,7 +3052,6 @@ $(document).ready(function () {
         } else if (type === "right") {
           buttonInBetween = getButtonAtPosition(17, i);
         }
-        console.log(">>>>");
         buttonInBetween.css("background-color", "");
       }
     }
@@ -3049,19 +3062,13 @@ $(document).ready(function () {
     if (type === "top") {
       const buttonColumnPosition = getPositionOfButton(buttonColumn);
       for (let i = buttonColumnPosition.row; i >= 0; i--) {
-        const buttonBetween = getButtonAtPosition(
-          buttonColumnPosition.column,
-          i
-        );
+        const buttonBetween = getButtonAtPosition(buttonColumnPosition.column, i);
         buttonBetween.css("background-color", "red");
       }
     } else if (type === "bottom") {
       const buttonColumnPosition = getPositionOfButton(buttonColumn);
       for (let i = buttonColumnPosition.row; i <= 10; i++) {
-        const buttonBetween = getButtonAtPosition(
-          buttonColumnPosition.column,
-          i
-        );
+        const buttonBetween = getButtonAtPosition(buttonColumnPosition.column, i);
         buttonBetween.css("background-color", "red");
       }
     }
@@ -3103,19 +3110,13 @@ $(document).ready(function () {
     if (type === "top") {
       const buttonColumnPosition = getPositionOfButton(buttonColumn);
       for (let i = buttonColumnPosition.row; i >= 0; i--) {
-        const buttonBetween = getButtonAtPosition(
-          buttonColumnPosition.column,
-          i
-        );
+        const buttonBetween = getButtonAtPosition(buttonColumnPosition.column, i);
         buttonBetween.css("background-color", "");
       }
     } else if (type === "bottom") {
       const buttonColumnPosition = getPositionOfButton(buttonColumn);
       for (let i = buttonColumnPosition.row; i <= 10; i++) {
-        const buttonBetween = getButtonAtPosition(
-          buttonColumnPosition.column,
-          i
-        );
+        const buttonBetween = getButtonAtPosition(buttonColumnPosition.column, i);
         buttonBetween.css("background-color", "");
       }
     }
@@ -3269,10 +3270,7 @@ $(document).ready(function () {
         button1Position.row
       );
     } else if (button1Position.column > button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button1Position.column,
-        button2Position.row
-      );
+      buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
     }
     if (buttonCorner.data("imageName") === "-1") {
       buttonCorner.css("background-color", "red");
@@ -3280,15 +3278,9 @@ $(document).ready(function () {
     // buttonCorner từ trên xuống dưới sang phải
     else {
       if (button1Position.column < button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button1Position.column,
-          button2Position.row
-        );
+        buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
       } else if (button1Position.column > button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button2Position.column,
-          button1Position.row
-        );
+        buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
       }
       buttonCorner.css("background-color", "red");
     }
@@ -3304,15 +3296,9 @@ $(document).ready(function () {
     let buttonCorner;
     // buttonCorner từ phải sang trái xuống dưới
     if (button1Position.column > button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button2Position.column,
-        button1Position.row
-      );
+      buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
     } else if (button1Position.column < button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button1Position.column,
-        button2Position.row
-      );
+      buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
     }
     if (buttonCorner.data("imageName") === "-1") {
       buttonCorner.css("background-color", "red");
@@ -3320,26 +3306,15 @@ $(document).ready(function () {
     // buttonCorner từ trên xuống dưới sang trái
     else {
       if (button1Position.column < button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button2Position.column,
-          button1Position.row
-        );
+        buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
       } else if (button1Position.column > button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button1Position.column,
-          button2Position.row
-        );
+        buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
       }
       buttonCorner.css("background-color", "red");
     }
   }
   // đặt lại bg cho button (hình vuông từ trái sang phải)
-  function removeDrawRectLeftToRight(
-    button1Colum,
-    button1Row,
-    button2Column,
-    button2Row
-  ) {
+  function removeDrawRectLeftToRight(button1Colum, button1Row, button2Column, button2Row) {
     const button1 = getButtonAtPosition(button1Colum, button1Row);
     const button2 = getButtonAtPosition(button2Column, button2Row);
     button1.css("background-color", "");
@@ -3350,15 +3325,9 @@ $(document).ready(function () {
     let buttonCorner;
     // buttonCorner từ trái sang phải xuống dưới
     if (button1Position.column < button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button2Position.column,
-        button1Position.row
-      );
+      buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
     } else if (button1Position.column > button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button1Position.column,
-        button2Position.row
-      );
+      buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
     }
     if (buttonCorner.data("imageName") === "-1") {
       buttonCorner.css("background-color", "");
@@ -3366,26 +3335,15 @@ $(document).ready(function () {
     // buttonCorner từ trên xuống dưới sang phải
     else {
       if (button1Position.column < button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button1Position.column,
-          button2Position.row
-        );
+        buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
       } else if (button1Position.column > button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button2Position.column,
-          button1Position.row
-        );
+        buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
       }
     }
     buttonCorner.css("background-color", "");
   }
   // đặt lại bg cho button (hình vuông từ phải sang trái)
-  function removeDrawRectRightToLeft(
-    button1Colum,
-    button1Row,
-    button2Column,
-    button2Row
-  ) {
+  function removeDrawRectRightToLeft(button1Colum, button1Row, button2Column, button2Row) {
     const button1 = getButtonAtPosition(button1Colum, button1Row);
     const button2 = getButtonAtPosition(button2Column, button2Row);
     button1.css("background-color", "");
@@ -3396,15 +3354,9 @@ $(document).ready(function () {
     let buttonCorner;
     // buttonCorner từ phải sang trái xuống dưới
     if (button1Position.column > button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button2Position.column,
-        button1Position.row
-      );
+      buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
     } else if (button1Position.column < button2Position.column) {
-      buttonCorner = getButtonAtPosition(
-        button1Position.column,
-        button2Position.row
-      );
+      buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
     }
     if (buttonCorner.data("imageName") === "-1") {
       buttonCorner.css("background-color", "");
@@ -3412,15 +3364,9 @@ $(document).ready(function () {
     // buttonCorner từ trên xuống dưới sang trái
     else {
       if (button1Position.column < button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button2Position.column,
-          button1Position.row
-        );
+        buttonCorner = getButtonAtPosition(button2Position.column, button1Position.row);
       } else if (button1Position.column > button2Position.column) {
-        buttonCorner = getButtonAtPosition(
-          button1Position.column,
-          button2Position.row
-        );
+        buttonCorner = getButtonAtPosition(button1Position.column, button2Position.row);
       }
       buttonCorner.css("background-color", "");
     }
@@ -3429,45 +3375,61 @@ $(document).ready(function () {
   // vẽ chữ Z, U, L: CHƯA HOÀN THÀNH
 
   //================================================================ LEVEL ================================================================
-  // Định nghĩa hàm skipLevel
+
+  // hàm chuyển sang level khác
   function skipLevel() {
     level++;
-    // Kiểm tra giá trị của level và thực hiện các hành động tương ứng
-
     if (level === 2) {
-      resetProgressBar(100);
-      startProgressBar(100);
+      updateLevel(level);
+      resetScore();
+      updateScoreInView();
+      resetProgressBar(180);
+      startProgressBar(180);
       console.log("lv ", level);
       clearMatrix();
       createMatrix(level);
     } else if (level === 3) {
-      resetProgressBar(100);
-      startProgressBar(100);
+      updateLevel(level);
+      resetScore();
+      updateScoreInView();
+      resetProgressBar(180);
+      startProgressBar(180);
       clearMatrix();
       createMatrix(level);
       console.log("lv ", level);
     }
     else if (level === 4) {
-      resetProgressBar(100);
-      startProgressBar(100);
+      updateLevel(level);
+      resetScore();
+      updateScoreInView();
+      $reset.click(clearMatrix);
+      $reset.click(createMatrixWithBoss);
+      resetProgressBar(180);
+      startProgressBar(180);
       clearMatrix();
       createMatrixWithBoss();
       console.log("lv ", level);
     } else if (level === 5) {
-      // hiện nút thay đổi vị trí
-      document.getElementById("change-position").style.display = "inline-block";
-      $changePosition.click(changePosition);
-      resetProgressBar(100);
-      startProgressBar(100);
+      updateLevel(level);
+      resetScore();
+      updateScoreInView();
+      // $changePosition.click(changePosition);
+      $reset.click(resetWithLock);
+      resetProgressBar(180);
+      startProgressBar(180);
       clearMatrix();
       createMatrixWithLock();
       console.log("lv ", level);
     }
     else if (level === 6) {
-      // ẩn đi button change
-      document.getElementById("change-position").style.display = "none";
-      resetProgressBar(100);
-      startProgressBar(100);
+      updateLevel(level);
+      resetScore();
+      updateScoreInView();
+      // ẩn đi button skip
+      document.getElementById("skip-level").style.display = "none";
+      $reset.click(resetWithPointEmpty);
+      resetProgressBar(180);
+      startProgressBar(180);
       clearMatrix();
       createHalfMatrix();
       autoCreateButton();
@@ -3480,22 +3442,71 @@ $(document).ready(function () {
     clearMatrix();
     createMatrix(level);
     resetProgressBar();
-    startProgressBar(100);
-    console.log("reset");
+    startProgressBar(180);
+    resetScore();
+    updateScoreInView()
   }
   // change position
   function changePosition() {
     deleteMatrix();
     createMatrixWithPoint();
   }
+  // reset game with lock (for lv 6)
+  function resetWithLock() {
+    clearMatrix();
+    createMatrixWithLock();
+    resetProgressBar();
+    startProgressBar(180);
+    resetScore();
+    updateScoreInView()
+  }
+
+  // reset game với các ô trống ở giữa
+  function resetWithPointEmpty() {
+    clearMatrix();
+    createHalfMatrix();
+    resetProgressBar();
+    startProgressBar(180);
+    resetScore();
+    updateScoreInView()
+  }
+
+  // hàm tăng điểm người chơi 
+  function increaseScore() {
+    score++;
+    if (score >= 50) {
+      card.style.display = "block";
+      setTimeout(() => {
+        card.style.display = "none";
+        skipLevel();
+      }, 2000);
+    }
+    console.log('score:', score);
+  }
+
+
+  // reset lại điểm
+  function resetScore() {
+    score = 0;
+  }
+
+  // cập nhật lại điểm ở view
+  function updateScoreInView() {
+    $("#score").text(score);
+  }
+
+  // cập nhật level ở view 
+  function updateLevel(level) {
+    $("#level").text(level);
+  }
+
 
   $skip.click(skipLevel);
-  $reset.click(reset);
-
-
+  $nextButton.click(skipLevel);
   if (level === 1) {
+    $reset.click(reset);
     createMatrix(level);
-    startProgressBar(100);
+    startProgressBar(180);
   }
 
 });
