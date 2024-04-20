@@ -1,4 +1,3 @@
-@charset "UTF-8";
 body {
   font-family: Arial, sans-serif;
   height: 100vh;
@@ -65,58 +64,23 @@ body {
 .boss-button::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0%;
-  height: 0%;
-  z-index: 0;
-  animation: gradient-shadow 4s ease-in-out infinite alternate;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  box-shadow: 0 0 20px 10px rgb(212, 46, 46);
+  border-radius: 50px;
+  opacity: 0;
+  animation: neon-glow 1.5s ease-in-out infinite alternate;
 }
 
-@keyframes gradient-shadow {
+@keyframes neon-glow {
   0% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-  }
-  10% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(61, 224, 170, 0.7);
-  }
-  20% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(111, 135, 201, 0.7);
-  }
-  30% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(142, 80, 201, 0.7);
-  }
-  40% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(222, 224, 61, 0.7);
-  }
-  50% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(212, 46, 46, 0.7);
-  }
-  60% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(46, 123, 212, 0.7);
-  }
-  70% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(65, 212, 46, 0.7);
-  }
-  80% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(222, 224, 61, 0.7);
-  }
-  90% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1.2);
-    box-shadow: 0 0 20px 10px rgba(233, 82, 200, 0.7);
+    opacity: 0.5;
   }
   100% {
-    transform: translate(-50%, -50%) rotate(45deg) scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    opacity: 1;
   }
 }
 #videoPlayer {
@@ -171,9 +135,9 @@ body {
 
 #scoreContainer {
   position: absolute;
-  top: 2%;
-  left: 0%;
-  background-color: rgba(0, 0, 0, 0.7);
+  top: 40px;
+  left: 5px;
+  background-color: rgba(51, 51, 51, 0.7);
   padding: 10px;
   border-radius: 10px;
   z-index: 0;
@@ -288,13 +252,14 @@ body {
 }
 
 .game-over-card {
+  display: none;
   width: 200px;
   height: 200px;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgb(0, 0, 0);
   color: white;
   padding: 20px;
   border-radius: 10px;
@@ -318,11 +283,10 @@ body {
   padding: 0;
 }
 
-/* Nút Restart */
 .game-over-card button {
   padding: 10px 20px;
   border: none;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border-radius: 5px;
   cursor: pointer;
@@ -330,7 +294,110 @@ body {
   transition: background-color 0.3s ease;
 }
 
-/* Hiệu ứng hover cho nút Restart */
 .game-over-card button:hover {
   background-color: #45a049;
+}
+
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    background-color: rgba(255, 0, 0, 0.1);
+  }
+  100% {
+    transform: scale(10);
+    opacity: 0;
+    background-color: rgba(255, 255, 0, 0);
+  }
+}
+.explode-button {
+  animation: explode 0.5s ease-out;
+}
+
+nav {
+  background-color: rgba(51, 51, 51, 0.7);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+nav ul li {
+  float: left;
+}
+
+nav ul li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 5px 16px;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  background-color: #111;
+}
+
+.inf {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.inf-content {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  font-family: Arial, sans-serif;
+}
+
+.inf-content img {
+  width: 50px;
+  height: auto;
+}
+
+.manual {
+  width: 700px;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.manual-content {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  font-family: Arial, sans-serif;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.manual-content p {
+  margin-bottom: 10px;
+}
+
+.bold {
+  font-weight: bolder;
 }/*# sourceMappingURL=style.css.map */

@@ -1,3 +1,5 @@
+//  21130150_PhamHongQuan_0364537696_DH21DTA 
+
 $(document).ready(function () {
   const ROWS = 11;
   const COLS = 18;
@@ -11,35 +13,39 @@ $(document).ready(function () {
   let interval;
   var $skip = $("#skip-level");
   var $reset = $("#reset");
-  // var $changePosition = $("#change-position");
   var $nextButton = $("#next-level");
   const card = document.querySelector(".notification-card");
   var currentScore = parseInt($("#score").text());
+  let currentProgressValue = 0;
+  // var popup = document.getElementById('inf');
   const IMAGE_NAMES = [
-    "bulbasaur.png",
-    "caterpie.png",
-    "charmander.png",
-    "clefairy.png",
-    "ekans.png",
-    "nidoran-f.png",
-    "nidoran-m.png",
-    "pidgey.png",
-    "pikachu-f.png",
-    "rattata-f.png",
-    "sandshrew.png",
-    "spearow.png",
-    "squirtle.png",
-    "weedle.png",
+    "pikachu.png",
+    "scyther.png",
+    "magmar.png",
+    "umbreon.png",
+    "masquerain.png",
+    "torkoal.png",
+    "mismagius.png",
+    "abomasnow.png",
+    "mamoswine.png",
+    "volcarona.png",
+    "drednaw.png",
+    "palafin-hero.png",
+    "golurk.png"
   ];
 
   // thanh timelife 
-  function startProgressBar(totalTime) {
+  function startProgressBar(totalTime, isLevel4) {
     const progressBar = document.getElementById("progressBar");
     let currentTime = totalTime;
     const initialTime = totalTime;
     interval = setInterval(() => {
-      currentTime--;
-      // console.log(level, currentTime);
+      if (isLevel4) {
+        currentTime -= 2;
+      } else {
+        currentTime--;
+      }
+      currentProgressValue = currentTime;
       const progressPercentage = (currentTime / initialTime) * 180;
       progressBar.value = progressPercentage;
       if (currentTime <= 0) {
@@ -529,7 +535,7 @@ $(document).ready(function () {
   }
 
   // Kiểm tra dòng theo chiều ngang
-  function checkLineX(startY, endY, column, reverse) {
+  function checkEmptyInColumn(startY, endY, column, reverse) {
     if (reverse === false) {
       for (let y = startY; y < endY; y++) {
         const buttonInBetween = getButtonAtPosition(column, y);
@@ -549,11 +555,10 @@ $(document).ready(function () {
   }
 
   // Kiểm tra dòng theo chiều dọc
-  function checkLineY(startX, endX, row, reverse) {
+  function checkEmptyInRow(startX, endX, row, reverse) {
     if (reverse === false) {
       for (let x = startX; x < endX; x++) {
         const buttonInBetween = getButtonAtPosition(x, row);
-
         if (buttonInBetween.data("imageName") !== "-1") {
           return false;
         }
@@ -572,34 +577,60 @@ $(document).ready(function () {
   // Hàm kiểm tra xem hai button tạo thành hình chữ Z hay không(THEO CHIỀU DỌC)
   function checkShapeZ_Column(button1, button2) {
     // Tìm điểm có y nhỏ nhất và lớn nhất
-    if (button1.data("imageName") === button2.data("imageName")) {
-      let minButtonPosition = getPositionOfButton(button1);
-      let maxButtonPosition = getPositionOfButton(button2);
-      if (minButtonPosition.row > maxButtonPosition.row) {
-        minButtonPosition = getPositionOfButton(button2);
-        maxButtonPosition = getPositionOfButton(button1);
+    if (button1.data("imageName") != button2.data("imageName")) {
+      return false;
+    }
+    let minButtonPosition = getPositionOfButton(button1);
+    let maxButtonPosition = getPositionOfButton(button2);
+    if (minButtonPosition.row > maxButtonPosition.row) {
+      minButtonPosition = getPositionOfButton(button2);
+      maxButtonPosition = getPositionOfButton(button1);
+    }
+    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
+      return false;
+    }
+    for (let i = minButtonPosition.row; i <= maxButtonPosition.row; i++) {
+      // Kiểm tra ba dòng
+      // buttonMin nằm bên trái buttonMax 
+      // Z: xuống dưới -> sang phải -> xuống dưới
+      if (minButtonPosition.column <= maxButtonPosition.column) {
+        if (checkEmptyInColumn(minButtonPosition.row + 1, i, minButtonPosition.column, false) &&
+          checkEmptyInRow(minButtonPosition.column, maxButtonPosition.column + 1, i, false) &&
+          checkEmptyInColumn(i, maxButtonPosition.row, maxButtonPosition.column, false)) {
+          // vẽ
+          drawColumn_template(minButtonPosition.row, i, minButtonPosition.column, false);
+          drawColumn_template(i, maxButtonPosition.row, maxButtonPosition.column, false);
+          drawRow_template(minButtonPosition.column, maxButtonPosition.column, i, false);
+          // bỏ vẽ
+          setTimeout(() => {
+            drawColumn_template(minButtonPosition.row, i, minButtonPosition.column, true);
+            drawColumn_template(i, maxButtonPosition.row, maxButtonPosition.column, true);
+            drawRow_template(minButtonPosition.column, maxButtonPosition.column, i, true);
+          }, 100);
+
+          return true;
+        }
       }
-      if (minButtonPosition.row === maxButtonPosition.row ||
-        minButtonPosition.column === maxButtonPosition.column) {
-        return false;
-      }
-      for (let y = minButtonPosition.row; y <= maxButtonPosition.row; y++) {
-        // Kiểm tra ba dòng
-        if (minButtonPosition.column <= maxButtonPosition.column) {
-          if (checkLineX(minButtonPosition.row + 1, y, minButtonPosition.column, false) &&
-            checkLineY(minButtonPosition.column, maxButtonPosition.column + 1, y, false) &&
-            checkLineX(y, maxButtonPosition.row, maxButtonPosition.column, false)) {
-            return true;
-          }
-        } else if (minButtonPosition.column > maxButtonPosition.column) {
-          if (checkLineX(minButtonPosition.row + 1, y, minButtonPosition.column, false) &&
-            checkLineY(maxButtonPosition.column, minButtonPosition.column + 1, y, false) &&
-            checkLineX(y, maxButtonPosition.row, maxButtonPosition.column, false)) {
-            return true;
-          }
+      // buttonMin nằm bên phải buttonMax
+      else if (minButtonPosition.column > maxButtonPosition.column) {
+        if (checkEmptyInColumn(minButtonPosition.row + 1, i, minButtonPosition.column, false) &&
+          checkEmptyInRow(maxButtonPosition.column, minButtonPosition.column + 1, i, false) &&
+          checkEmptyInColumn(i, maxButtonPosition.row, maxButtonPosition.column, false)) {
+          // vẽ
+          drawColumn_template(minButtonPosition.row, i, minButtonPosition.column, false);
+          drawColumn_template(i, maxButtonPosition.row, maxButtonPosition.column, false);
+          drawRow_template(maxButtonPosition.column, minButtonPosition.column, i, false);
+          // bỏ vẽ 
+          setTimeout(() => {
+            drawColumn_template(minButtonPosition.row, i, minButtonPosition.column, true);
+            drawColumn_template(i, maxButtonPosition.row, maxButtonPosition.column, true);
+            drawRow_template(maxButtonPosition.column, minButtonPosition.column, i, true);
+          }, 100);
+          return true;
         }
       }
     }
+
     return false;
   }
 
@@ -615,18 +646,41 @@ $(document).ready(function () {
     if (minButtonPosition.row === maxButtonPosition.row || minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
-    for (let y = minButtonPosition.column; y <= maxButtonPosition.column; y++) {
+    for (let i = minButtonPosition.column; i <= maxButtonPosition.column; i++) {
       // Kiểm tra ba dòng
+      // buttonMin nằm trên buttonMax
       if (minButtonPosition.row <= maxButtonPosition.row) {
-        if (checkLineY(minButtonPosition.column + 1, y, minButtonPosition.row, false) &&
-          checkLineX(minButtonPosition.row, maxButtonPosition.row, y, false) &&
-          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row, false)) {
+        if (checkEmptyInRow(minButtonPosition.column + 1, i, minButtonPosition.row, false) &&
+          checkEmptyInColumn(minButtonPosition.row, maxButtonPosition.row, i, false) &&
+          checkEmptyInRow(i, maxButtonPosition.column, maxButtonPosition.row, false)) {
+          // vẽ 
+          drawRow_template(minButtonPosition.column, i, minButtonPosition.row, false);
+          drawRow_template(i, maxButtonPosition.column, maxButtonPosition.row, false);
+          drawColumn_template(minButtonPosition.row, maxButtonPosition.row, i, false);
+          // bỏ vẽ 
+          setTimeout(() => {
+            drawRow_template(minButtonPosition.column, i, minButtonPosition.row, true);
+            drawRow_template(i, maxButtonPosition.column, maxButtonPosition.row, true);
+            drawColumn_template(minButtonPosition.row, maxButtonPosition.row, i, true);
+          }, 100);
           return true;
         }
-      } else if (minButtonPosition.row > maxButtonPosition.row) {
-        if (checkLineY(minButtonPosition.column + 1, y, minButtonPosition.row, false) &&
-          checkLineX(maxButtonPosition.row, minButtonPosition.row, y, false) &&
-          checkLineY(y, maxButtonPosition.column, maxButtonPosition.row, false)) {
+      }
+      // buttonMin nằm bên dưới buttonMax
+      else if (minButtonPosition.row > maxButtonPosition.row) {
+        if (checkEmptyInRow(minButtonPosition.column + 1, i, minButtonPosition.row, false) &&
+          checkEmptyInColumn(maxButtonPosition.row, minButtonPosition.row, i, false) &&
+          checkEmptyInRow(i, maxButtonPosition.column, maxButtonPosition.row, false)) {
+          // vẽ
+          drawRow_template(minButtonPosition.column, i, minButtonPosition.row, false);
+          drawRow_template(i, maxButtonPosition.column, maxButtonPosition.row, false);
+          drawColumn_template(maxButtonPosition.row, minButtonPosition.row, i, false);
+          // bỏ vẽ
+          setTimeout(() => {
+            drawRow_template(minButtonPosition.column, i, minButtonPosition.row, true);
+            drawRow_template(i, maxButtonPosition.column, maxButtonPosition.row, true);
+            drawColumn_template(maxButtonPosition.row, minButtonPosition.row, i, true);
+          }, 100);
           return true;
         }
       }
@@ -644,9 +698,9 @@ $(document).ready(function () {
     }
 
     if (maxButtonPosition.column - minButtonPosition.column === 1 && maxButtonPosition.row - minButtonPosition.row === 1) {
-      const buttonTempRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
-      const buttonTempBottom = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row + 1);
-      if (buttonTempRight.data("imageName") === "-1" || buttonTempBottom.data("imageName") === "-1"
+      const buttonCheckRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
+      const buttonCheckBottom = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row + 1);
+      if (buttonCheckRight.data("imageName") === "-1" || buttonCheckBottom.data("imageName") === "-1"
       ) {
         return true;
       }
@@ -664,135 +718,110 @@ $(document).ready(function () {
     }
 
     if (minButtonPosition.row - maxButtonPosition.row === 1 && maxButtonPosition.column - minButtonPosition.column === 1) {
-      const buttonTempTop = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row - 1);
-      const buttonTempRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
-      if (buttonTempTop.data("imageName") === "-1" || buttonTempRight.data("imageName") === "-1") {
+      const buttonCheckTop = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row - 1);
+      const buttonCheckRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
+      if (buttonCheckTop.data("imageName") === "-1" || buttonCheckRight.data("imageName") === "-1") {
         return true;
       }
     }
     return false;
   }
 
-  // kiểm tra chữ chữ L
-  // getPositionOfButton:=> (row:column)
-  // getButtonAtPosition(column, row)
-  function checkShapeL(button1, button2) {
+  // kiểm tra chữ chữ L (xuất phát theo chiều ngang)
+  function checkShapeL_Row(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
     if (minButtonPosition.column > maxButtonPosition.column) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    let flag = false;
     // KIỂM TRA CHỮ L (XUẤT PHÁT THEO CHIỀU NGANG)
     // kiểm tra từ min->cột của max, nếu trên hàng đó không có vật cản thì xét tiếp
-    if (checkLineY(minButtonPosition.column + 1, maxButtonPosition.column + 1, minButtonPosition.row, false)) {
-      const buttonTemp = getButtonAtPosition(maxButtonPosition.column, minButtonPosition.row);
-      // buttonTempPosition: vị trí mà hàm checkLineX sẽ chạy từ max hoặc đến max
-      const buttonTempPosition = getPositionOfButton(buttonTemp);
-      // nếu dòng của max < dòng min => chạy từ dòng max tới dòng của temp trên cột max
+    if (checkEmptyInRow(minButtonPosition.column + 1, maxButtonPosition.column + 1, minButtonPosition.row, false)) {
+      const buttonCheck = getButtonAtPosition(maxButtonPosition.column, minButtonPosition.row);
+      // buttonCheckPosition: vị trí mà hàm checkEmptyInColumn sẽ chạy từ max hoặc đến max
+      const buttonCheckPosition = getPositionOfButton(buttonCheck);
+      // nếu dòng của max < dòng min => chạy từ dòng max tới dòng của check trên cột max
       if (maxButtonPosition.row < minButtonPosition.row) {
-        if (checkLineX(maxButtonPosition.row + 1, buttonTempPosition.row + 1, maxButtonPosition.column, false)) {
-          flag = true;
-        } else {
-          flag = false;
+        if (checkEmptyInColumn(maxButtonPosition.row + 1, buttonCheckPosition.row + 1, maxButtonPosition.column, false)) {
+          // vẽ 
+          drawRow_template(minButtonPosition.column, buttonCheckPosition.column, minButtonPosition.row, false);
+          drawColumn_template(maxButtonPosition.row, buttonCheckPosition.row, maxButtonPosition.column, false);
+          // bỏ vẽ
+          setTimeout(() => {
+            drawRow_template(minButtonPosition.column, buttonCheckPosition.column, minButtonPosition.row, true);
+            drawColumn_template(maxButtonPosition.row, buttonCheckPosition.row, maxButtonPosition.column, true);
+          }, 100);
+          return true;
         }
       } else if (maxButtonPosition.row > minButtonPosition.row) {
-        // chạy từ hàng của temp đến max trên cột max
-        if (checkLineX(buttonTempPosition.row, maxButtonPosition.row, maxButtonPosition.column, false)) {
-          flag = true;
-        } else {
-          flag = false;
+        // chạy từ hàng của check đến max trên cột max
+        if (checkEmptyInColumn(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, false)) {
+          drawRow_template(minButtonPosition.column, buttonCheckPosition.column, minButtonPosition.row, false);
+          drawColumn_template(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, false);
+          // bỏ vẽ
+          setTimeout(() => {
+            drawRow_template(minButtonPosition.column, buttonCheckPosition.column, minButtonPosition.row, true);
+            drawColumn_template(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, true);
+          }, 100);
+          return true;
         }
       }
     }
+    return false;
+  }
+
+  // kiểm tra L, xuất phát theo chiều dọc
+  function checkShapeL_Column(button1, button2) {
+    let minButtonPosition = getPositionOfButton(button1);
+    let maxButtonPosition = getPositionOfButton(button2);
+    if (minButtonPosition.column > maxButtonPosition.column) {
+      minButtonPosition = getPositionOfButton(button2);
+      maxButtonPosition = getPositionOfButton(button1);
+    }
     // KIỂM TRA CHỮ L (XUẤT PHÁT THEO CHIỀU DỌC)
     // kiểm tra từ hàng min-> max (phía dưới buttonMin)
-    else if (maxButtonPosition.row > minButtonPosition.row) {
-      if (checkLineX(minButtonPosition.row + 1, maxButtonPosition.row + 1, minButtonPosition.column, false)) {
-        const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
-        const buttonTempPosition = getPositionOfButton(buttonTemp);
-        if (checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row,)) {
-          flag = true;
-        } else {
-          flag = false;
+    if (maxButtonPosition.row > minButtonPosition.row) {
+      if (checkEmptyInColumn(minButtonPosition.row + 1, maxButtonPosition.row + 1, minButtonPosition.column, false)) {
+        const buttonCheck = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
+        const buttonCheckPosition = getPositionOfButton(buttonCheck);
+        if (checkEmptyInRow(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false)) {
+          // vẽ 
+          drawColumn_template(minButtonPosition.row, buttonCheckPosition.row, minButtonPosition.column, false);
+          drawRow_template(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false);
+          // bỏ vẽ 
+          setTimeout(() => {
+            drawColumn_template(minButtonPosition.row, buttonCheckPosition.row, minButtonPosition.column, true);
+            drawRow_template(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, true);
+          }, 100);
+          return true;
         }
       }
     }
     // kiểm tra từ hàng min->hàng max(phía trên button min)
     else if (maxButtonPosition.row < minButtonPosition.row) {
-      if (checkLineX(maxButtonPosition.row, minButtonPosition.row, minButtonPosition.column, false)) {
-        const buttonTemp = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
-        const buttonTempPosition = getPositionOfButton(buttonTemp);
-        if (checkLineY(buttonTempPosition.column, maxButtonPosition.column, maxButtonPosition.row, false)) {
-          flag = true;
-        } else {
-          flag = false;
+      if (checkEmptyInColumn(maxButtonPosition.row, minButtonPosition.row, minButtonPosition.column, false)) {
+        const buttonCheck = getButtonAtPosition(minButtonPosition.column, maxButtonPosition.row);
+        const buttonCheckPosition = getPositionOfButton(buttonCheck);
+        if (checkEmptyInRow(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false)) {
+          // vẽ 
+          drawColumn_template(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, false);
+          drawRow_template(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false);
+          // bỏ vẽ 
+          setTimeout(() => {
+            drawColumn_template(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, true);
+            drawRow_template(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, true);
+          }, 100);
+          return true;
         }
       }
     }
-    return flag;
-  }
-
-  // hàm kiểm tra chữ U (hướng bên phải buttonMax)
-  function checkShapeU_Right(button1, button2) {
-    let minButtonPosition = getPositionOfButton(button1);
-    let maxButtonPosition = getPositionOfButton(button2);
-    // mặc định hàm nào có hàng nhỏ hơn là hàm min
-    if (minButtonPosition.row >= maxButtonPosition.row) {
-      minButtonPosition = getPositionOfButton(button2);
-      maxButtonPosition = getPositionOfButton(button1);
-    }
-    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
-      return false;
-    }
-
-    var buttonMinColumn = null;
-    var buttonMinColumnPositionTemp = null; // Khởi tạo biến vị trí của buttonMinColumn
-    // hàng: row
-    for (let i = maxButtonPosition.row; i >= minButtonPosition.row; i--) {
-      // cột: column
-      for (let j = 16; j >= 1; j--) {
-        var buttonTest = getButtonAtPosition(j, i);
-        var buttonTestPosition = getPositionOfButton(buttonTest);
-        if (buttonTest.data("imageName") !== "-1") {
-          if (!buttonMinColumn || buttonTestPosition.column < buttonMinColumnPositionTemp.column) {
-            buttonMinColumn = buttonTest;
-            buttonMinColumnPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMinColumn
-          }
-        }
-
-        if (checkLineY(buttonTestPosition.column, maxButtonPosition.column, maxButtonPosition.row, true) &&
-          checkLineY(buttonTestPosition.column, minButtonPosition.column, minButtonPosition.row, true) &&
-          checkLineX(minButtonPosition.row, maxButtonPosition.row, buttonMinColumnPositionTemp.column - 1, false)) {
-          break;
-        }
-
-      }
-    }
-    var buttonMinColumPosition = getPositionOfButton(buttonMinColumn);
-    // kiểm tra chữ U bắt đầu từ bên phải buttonMax
-    // duyệt từ bên phải buttonMax đến hết dòng đó
-    // trên đường đi đó, xét button đầu tiên có giá trị làm buttonTemp1
-    // lấy ra giao điểm đầu tiên
-    var buttonIntersection;
-    for (let i = maxButtonPosition.column + 1; i <= buttonMinColumPosition.column; i++) {
-      buttonIntersection = getButtonAtPosition(i - 1, maxButtonPosition.row);
-    }
-    const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
-      if (checkLineY(maxButtonPosition.column + 1, buttonIntersection.column + 1, maxButtonPosition.row, false) &&
-        checkLineX(minButtonPosition.row, buttonIntersectionPosition.row + 1, buttonIntersectionPosition.column, false) &&
-        checkLineY(minButtonPosition.column + 1, buttonIntersectionPosition.column + 1, minButtonPosition.row, false)) {
-        return true;
-      }
-    }
-
     return false;
   }
 
-  // hàm kiểm tra chữ U (bên trái button)
-  function checkShapeU_Left(button1, button2) {
+
+  // hàm kiểm tra chữ U (xuất phát theo hàng)
+  function checkShapeU_Row(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
     // mặc định hàm nào có hàng nhỏ hơn là hàm min
@@ -800,53 +829,72 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-
+    // console.log('max: ', maxButtonPosition.row, maxButtonPosition.column);
+    // console.log('min: ', minButtonPosition.row, minButtonPosition.column);
     if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
-
-    var buttonMaxColumn = null;
-    var buttonMaxColumnPositionTemp = null; // Khởi tạo biến vị trí của buttonMaxColumn
-    // hàng: row
-    for (let i = maxButtonPosition.row; i >= minButtonPosition.row; i--) {
-      // cột: column
+    var buttonCheck = getButtonAtPosition(1, 1);
+    var buttonCheckPosition = getPositionOfButton(buttonCheck);
+    let shouldBreak = false;
+    for (let i = maxButtonPosition.row; i >= minButtonPosition.row && !shouldBreak; i--) {
       for (let j = 1; j <= 16; j++) {
-        var buttonTest = getButtonAtPosition(j, i);
-        var buttonTestPosition = getPositionOfButton(buttonTest);
-        if (buttonTest.data("imageName") !== "-1") {
-          if (!buttonMaxColumn || buttonTestPosition.column > buttonMaxColumnPositionTemp.column) {
-            buttonMaxColumn = buttonTest;
-            buttonMaxColumnPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMaxColumn
-          }
-        }
-        if (checkLineY(buttonTestPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
-          checkLineY(buttonTestPosition.column, minButtonPosition.column, minButtonPosition.row, false) &&
-          checkLineX(minButtonPosition.row, maxButtonPosition.row, buttonMaxColumnPositionTemp.column + 1, false)) {
+        var buttonBarrier = getButtonAtPosition(j, i);
+        var buttonBarrierPosition = getPositionOfButton(buttonBarrier);
+        if (checkEmptyInRow(buttonBarrierPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
+          checkEmptyInRow(buttonBarrierPosition.column, minButtonPosition.column, minButtonPosition.row, false) &&
+          checkEmptyInColumn(minButtonPosition.row, maxButtonPosition.row + 1, buttonBarrierPosition.column, false)) {
+          buttonCheck = buttonBarrier;
+          buttonCheckPosition = buttonBarrierPosition;
+          shouldBreak = true;
           break;
         }
       }
     }
-    var buttonMinColumPosition = getPositionOfButton(buttonMaxColumn);
-
-
-    var buttonIntersection;
-    for (let i = maxButtonPosition.column - 1; i >= buttonMinColumPosition.column; i--) {
-      buttonIntersection = getButtonAtPosition(i + 1, maxButtonPosition.row);
-    }
-    const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-
-    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
-      if (checkLineY(buttonIntersectionPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
-        checkLineX(minButtonPosition.row, buttonIntersectionPosition.row + 1, buttonIntersectionPosition.column, false) &&
-        checkLineY(buttonIntersectionPosition.column, minButtonPosition.column, minButtonPosition.row, false)) {
+    console.log("check_Row: ", buttonCheckPosition.row, buttonCheckPosition.column);
+    // buttonCheck nằm bên trái
+    if (buttonCheckPosition.column < minButtonPosition.column && buttonCheckPosition.column < maxButtonPosition.column) {
+      if (checkEmptyInRow(buttonCheckPosition.column, minButtonPosition.column, minButtonPosition.row, false) &&
+        checkEmptyInRow(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
+        checkEmptyInColumn(minButtonPosition.row, maxButtonPosition.row + 1, buttonCheckPosition.column, false)) {
+        console.log('U nằm bên trái');
+        // vẽ
+        drawColumn_template(minButtonPosition.row, maxButtonPosition.row, buttonCheckPosition.column, false);
+        drawRow_template(buttonCheckPosition.column, minButtonPosition.column, minButtonPosition.row, false);
+        drawRow_template(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false);
+        // bỏ vẽ
+        setTimeout(() => {
+          drawColumn_template(minButtonPosition.row, maxButtonPosition.row, buttonCheckPosition.column, true);
+          drawRow_template(buttonCheckPosition.column, minButtonPosition.column, minButtonPosition.row, true);
+          drawRow_template(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, true);
+        }, 100);
+        return true;
+      }
+      // buttonCheck nằm bên phải
+    } else if (buttonCheckPosition.column > minButtonPosition.column && buttonCheckPosition.column > maxButtonPosition.column) {
+      if (checkEmptyInRow(minButtonPosition.column + 1, buttonCheckPosition.column + 1, minButtonPosition.row, false) &&
+        checkEmptyInRow(maxButtonPosition.column + 1, buttonCheckPosition.column + 1, maxButtonPosition.row, false) &&
+        checkEmptyInColumn(minButtonPosition.row, maxButtonPosition.row + 1, buttonCheckPosition.column, false)) {
+        console.log('U nằm bên phai');
+        // vẽ
+        drawColumn_template(minButtonPosition.row, maxButtonPosition.row, buttonCheckPosition.column, false);
+        drawRow_template(minButtonPosition.column, buttonCheckPosition.column, minButtonPosition.row, false);
+        drawRow_template(maxButtonPosition.column, buttonCheckPosition.column, maxButtonPosition.row, false);
+        // bỏ vẽ
+        setTimeout(() => {
+          drawColumn_template(minButtonPosition.row, maxButtonPosition.row, buttonCheckPosition.column, true);
+          drawRow_template(minButtonPosition.column, buttonCheckPosition.column, minButtonPosition.row, true);
+          drawRow_template(maxButtonPosition.column, buttonCheckPosition.column, maxButtonPosition.row, true);
+        }, 100);
         return true;
       }
     }
     return false;
   }
+
 
   // kiểm tra chữ U (phía trên)
-  function checkShapeU_Top(button1, button2) {
+  function checkShapeU_Column(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
     // mặc định hàm nào có cột nhỏ hơn là hàm min
@@ -857,93 +905,72 @@ $(document).ready(function () {
     if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
-
-    // duyệt từng cột => tìm button có hàng lớn nhất từ trên xuống dưới
-    var buttonMaxRow = null;
-    var buttonMaxRowPositionTemp = null; // Khởi tạo biến vị trí của buttonMaxRow
-    for (let i = maxButtonPosition.column; i >= minButtonPosition.column; i--) {
+    // console.log('max: ', maxButtonPosition.row, maxButtonPosition.column);
+    // console.log('min: ', minButtonPosition.row, minButtonPosition.column);
+    var buttonCheck = getButtonAtPosition(1, 1);
+    var buttonCheckPosition = getPositionOfButton(buttonCheck);
+    let shouldBreak = false;
+    for (let i = maxButtonPosition.column; i >= minButtonPosition.column && !shouldBreak; i--) {
       for (let j = 1; j <= 9; j++) {
-        var buttonTest = getButtonAtPosition(i, j);
-        var buttonTestPosition = getPositionOfButton(buttonTest);
-        if (buttonTest.data("imageName") !== "-1") {
-          // Nếu buttonMaxRow chưa được gán hoặc vị trí hàng của buttonTest lớn hơn vị trí hàng của buttonMaxRow
-          if (!buttonMaxRow || buttonTestPosition.row > buttonMaxRowPositionTemp.row) {
-            buttonMaxRow = buttonTest;
-            buttonMaxRowPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMaxRow
-          }
-        }
-
-        if (checkLineX(buttonTestPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
-          checkLineX(buttonTestPosition.row, minButtonPosition.row, minButtonPosition.column, false) &&
-          checkLineY(minButtonPosition.row, maxButtonPosition.row, buttonMaxRowPositionTemp.row + 1, false)) {
+        var buttonBarrier = getButtonAtPosition(i, j);
+        var buttonBarrierPosition = getPositionOfButton(buttonBarrier);
+        if (checkEmptyInColumn(buttonBarrierPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
+          checkEmptyInColumn(buttonBarrierPosition.row, minButtonPosition.row, minButtonPosition.column, false) &&
+          checkEmptyInRow(minButtonPosition.column, maxButtonPosition.column + 1, buttonBarrierPosition.row, false)) {
+          buttonCheck = buttonBarrier;
+          buttonCheckPosition = buttonBarrierPosition;
+          shouldBreak = true;
           break;
         }
       }
     }
-    var buttonMaxRowPosition = getPositionOfButton(buttonMaxRow);
-    var buttonIntersection = null;
-    for (let i = maxButtonPosition.row - 1; i > buttonMaxRowPosition.row; i--) {
-      buttonIntersection = getButtonAtPosition(maxButtonPosition.column, i);
-    }
-    const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
-      if (checkLineX(buttonIntersectionPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
-        checkLineY(minButtonPosition.column, maxButtonPosition.column + 1, buttonIntersectionPosition.row, false) &&
-        checkLineX(buttonIntersectionPosition.row, minButtonPosition.row, minButtonPosition.column, false)) {
+    console.log("check_Column: ", buttonCheckPosition.row, buttonCheckPosition.column);
+    // buttonCheck nằm bên trên
+    if (buttonCheckPosition.row < minButtonPosition.row && buttonCheckPosition.row < maxButtonPosition.row) {
+      if (checkEmptyInColumn(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, false) &&
+        checkEmptyInColumn(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
+        checkEmptyInRow(minButtonPosition.column, maxButtonPosition.column + 1, buttonCheckPosition.row, false)) {
+        console.log('u trên');
+        // vẽ
+        drawColumn_template(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, false);
+        drawColumn_template(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, false);
+        drawRow_template(minButtonPosition.column, maxButtonPosition.column, buttonCheckPosition.row, false);
+        // bỏ vẽ 
+        setTimeout(() => {
+          drawColumn_template(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, true);
+          drawColumn_template(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, true);
+          drawRow_template(minButtonPosition.column, maxButtonPosition.column, buttonCheckPosition.row, true);
+        }, 100);
         return true;
+      }
+
+    }
+    // buttonCheck nằm bên dưới
+    else {
+      if (buttonCheckPosition.row > minButtonPosition.row && buttonCheckPosition.row > maxButtonPosition.row) {
+        if (checkEmptyInColumn(minButtonPosition.row + 1, buttonCheckPosition.row + 1, minButtonPosition.column, false) &&
+          checkEmptyInColumn(maxButtonPosition.row + 1, buttonCheckPosition.row + 1, maxButtonPosition.column, false) &&
+          checkEmptyInRow(minButtonPosition.column, maxButtonPosition.column + 1, buttonCheckPosition.row, false)) {
+          // vẽ
+          drawColumn_template(minButtonPosition.row, buttonCheckPosition.row, minButtonPosition.column, false);
+          drawColumn_template(maxButtonPosition.row, buttonCheckPosition.row, maxButtonPosition.column, false);
+          drawRow_template(minButtonPosition.column, maxButtonPosition.column, buttonCheckPosition.row, false);
+          // bỏ vẽ 
+          setTimeout(() => {
+            drawColumn_template(minButtonPosition.row, buttonCheckPosition.row, minButtonPosition.column, true);
+            drawColumn_template(maxButtonPosition.row, buttonCheckPosition.row, maxButtonPosition.column, true);
+            drawRow_template(minButtonPosition.column, maxButtonPosition.column, buttonCheckPosition.row, true);
+          }, 100);
+          console.log('u dưới');
+          return true;
+        }
       }
     }
     return false;
   }
 
-  // kiểm tra chữ u(phía dưới)
-  function checkShapeU_Bottom(button1, button2) {
-    let minButtonPosition = getPositionOfButton(button1);
-    let maxButtonPosition = getPositionOfButton(button2);
-    // mặc định hàm nào có cột nhỏ hơn là hàm min
-    if (minButtonPosition.column >= maxButtonPosition.column) {
-      minButtonPosition = getPositionOfButton(button2);
-      maxButtonPosition = getPositionOfButton(button1);
-    }
-    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
-      return false;
-    }
 
-    var buttonMinRow = null;
-    var buttonMinRowPositionTemp = null; // Khởi tạo biến vị trí của buttonMinRow
-    for (let i = maxButtonPosition.column; i >= minButtonPosition.column; i--) {
-      for (let j = 9; j >= 1; j--) {
-        var buttonTest = getButtonAtPosition(i, j);
-        var buttonTestPosition = getPositionOfButton(buttonTest);
-        if (buttonTest.data("imageName") !== "-1") {
-          // Nếu buttonMinRow chưa được gán hoặc vị trí hàng của buttonTest lớn hơn vị trí hàng của buttonMinRow
-          if (!buttonMinRow || buttonTestPosition.row < buttonMinRowPositionTemp.row) {
-            buttonMinRow = buttonTest;
-            buttonMinRowPositionTemp = buttonTestPosition; // Cập nhật vị trí mới cho buttonMinRow
-          }
-        }
-        if (buttonTest.data("imageName") === "-1") {
-          break;
-        }
-      }
-    }
-    var buttonMinRowPosition = getPositionOfButton(buttonMinRow);
-
-    var buttonIntersection;
-    for (let i = maxButtonPosition.row + 1; i < buttonMinRowPosition.row; i++) {
-      buttonIntersection = getButtonAtPosition(maxButtonPosition.column, i);
-    }
-    const buttonIntersectionPosition = getPositionOfButton(buttonIntersection);
-    if (buttonIntersectionPosition.row !== -1 && buttonIntersectionPosition.column !== -1) {
-      if (checkLineX(maxButtonPosition.row + 1, buttonIntersectionPosition.row + 1, maxButtonPosition.column, false) &&
-        checkLineY(minButtonPosition.column, maxButtonPosition.column + 1, buttonIntersectionPosition.row, false) &&
-        checkLineX(minButtonPosition.row + 1, buttonIntersectionPosition.row + 1, minButtonPosition.column, false)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
+  // ====================================================== XỬ LÍ ======================================================
   // Xử lý khi click vào button
   let previousButton = null;
   function logicGamePikachu(button, level) {
@@ -955,224 +982,27 @@ $(document).ready(function () {
       if (button !== previousButton && previousButton.data("imageName") === button.data("imageName")) {
         const previousButtonPosition = getPositionOfButton(previousButton);
         const buttonPosition = getPositionOfButton(button);
+        console.log('button1: ', previousButton.data('imageName'));
+        console.log('button2: ', button.data('imageName'));
 
 
         // kiểm tra trên 1 cột =>  hàng tăng dần
         if (checkColumn(previousButton, button)) {
           console.log("kiểm tra cột");
-          drawInColumn(previousButtonPosition.row, buttonPosition.row, buttonPosition.column);
+          drawInColumn(previousButtonPosition.row, buttonPosition.row, buttonPosition.column, false);
           setTimeout(function () {
-            removeDrawColumn(
-              previousButtonPosition.row,
-              buttonPosition.row,
-              buttonPosition.column
-            );
+            drawInColumn(previousButtonPosition.row, buttonPosition.row, buttonPosition.column, true);
           }, 100);
-          console.log("lv: ", level);
-          switch (level) {
-            case 1:
-              console.log("case 1 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              console.log("case 2 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              console.log("case 3 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3")
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                console.log("case 4 nè");
-              }
-              break;
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
+          handleWithLevel(level, previousButton, button);
         }
         // kiểm tra hàng, cột tăng dần
         else if (checkRow(previousButton, button)) {
           console.log("kiểm tra hàng");
-          drawInRow(
-            previousButtonPosition.column,
-            buttonPosition.column,
-            buttonPosition.row
-          );
+          drawInRow(previousButtonPosition.column, buttonPosition.column, buttonPosition.row, false);
           setTimeout(function () {
-            removeDrawRow(
-              previousButtonPosition.column,
-              buttonPosition.column,
-              buttonPosition.row
-            );
+            drawInRow(previousButtonPosition.column, buttonPosition.column, buttonPosition.row, true);
           }, 100);
-          switch (level) {
-            case 1:
-              console.log("case 1 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              console.log("case 2 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              console.log("case 3 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                console.log("case 4 nè");
-              }
-              break;
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
+          handleWithLevel(level, previousButton, button);
         }
         // kiểm tra cột hoặc hàng ngoài cùng
         else if (checkOutside(previousButton, button)) {
@@ -1199,100 +1029,7 @@ $(document).ready(function () {
               removeColumnOutside(previousButtonPosition.row, previousButtonPosition.column, buttonPosition.row, buttonPosition.column, type);
             }, 100);
           }
-          switch (level) {
-            case 1:
-              console.log("case 1 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              console.log("case 2 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              console.log("case 3 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                console.log("case 4 nè");
-              }
-              break;
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
+          handleWithLevel(level, previousButton, button);
         }
         // kiểm tra hình vuông từ trái sang phải
         else if (checkSquareLeftToRight(previousButton, button)) {
@@ -1302,100 +1039,7 @@ $(document).ready(function () {
             removeDrawRectLeftToRight(previousButtonPosition.column, previousButtonPosition.row, buttonPosition.column, buttonPosition.row);
           }, 100);
 
-          switch (level) {
-            case 1:
-              console.log("case 1 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              console.log("case 2 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              console.log("case 3 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                console.log("case 4 nè");
-              }
-              break;
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
+          handleWithLevel(level, previousButton, button);
         }
         // kiểm tra hình vuông từ phải sang trái
         else if (checkSquareRightToLeft(previousButton, button)) {
@@ -1405,1121 +1049,57 @@ $(document).ready(function () {
             removeDrawRectRightToLeft(previousButtonPosition.column, previousButtonPosition.row, buttonPosition.column, buttonPosition.row);
           }, 100);
 
-          switch (level) {
-            case 1:
-              console.log("case 1 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              console.log("case 2 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              console.log("case 3 nè");
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              }
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              console.log("case 4 nè");
-              break;
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
+          handleWithLevel(level, previousButton, button);
+        }
+        else if (checkShapeL_Row(previousButton, button)) {
+          // previousButton.css("background-color", "");
+          console.log("L Row");
+          handleWithLevel(level, previousButton, button);
+        }
+        else if (checkShapeL_Column(previousButton, button)) {
+          console.log("L Column");
+          handleWithLevel(level, previousButton, button);
+        }
+        else if (checkShapeZ_Column(previousButton, button)) {
+          // previousButton.css("background-color", "");
+          console.log("Z COLUMN");
+          handleWithLevel(level, previousButton, button);
+        } else if (checkShapeZ_Row(previousButton, button)) {
+          // previousButton.css("background-color", "");
+          console.log("Z ROW");
+          handleWithLevel(level, previousButton, button);
+        }
+        // kiếm tra chữ U theo chiều dọc
+        else if (checkShapeU_Column(previousButton, button)) {
+          console.log("U Column");
+          handleWithLevel(level, previousButton, button);
+        }
+        // kiểm tra chữ U theo chiều ngang
+        else if (checkShapeU_Row(previousButton, button)) {
+          console.log("U Row");
+          handleWithLevel(level, previousButton, button);
         }
         // kiểm tra outside phía trên
         else if (checkOutsideTop(previousButton, button)) {
           console.log("TOP_OUTSIDE");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
+          handleWithLevel(level, previousButton, button);
         }
         // kiểm tra outside phía dưới
         else if (checkOutsideBottom(previousButton, button)) {
           console.log("BOTTOM_OUTSIDE");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkOutsideRight(previousButton, button)) {
+          handleWithLevel(level, previousButton, button);
+        }
+        // kiểm tra outside bên phải
+        else if (checkOutsideRight(previousButton, button)) {
           console.log("RIGHT_OUTSIDE");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkOutsideLeft(previousButton, button)) {
+          handleWithLevel(level, previousButton, button);
+        }
+        // kiểm tra outside bên trái
+        else if (checkOutsideLeft(previousButton, button)) {
           console.log("LEFT_OUTSIDE");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeL(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("L");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeU_Top(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("U TOP");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeU_Bottom(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("U BOTTOM");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeU_Right(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("U RIGHT");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeU_Left(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("U LEFT");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeZ_Column(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("Z COLUMN");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else if (checkShapeZ_Row(previousButton, button)) {
-          previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
-          console.log("Z ROW");
-          switch (level) {
-            case 1:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 2:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              dropButton();
-              break;
-            case 3:
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              deleteMatrix();
-              createMatrixWithPoint();
-              break;
-            case 4:
-              let videoPath = "";
-              let imagePath = "";
-              if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
-                videoPath = "video/diaAnimation.mp4";
-                imagePath = "img/diaStart.png";
-                showVideo(videoPath, imagePath);
-                actionOfDia();
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                previousButton.removeClass("boss-button");
-                button.removeClass("boss-button");
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-              } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
-                videoPath = "video/solAnimation.mp4";
-                imagePath = "img/solStart.png";
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                showVideo(videoPath, imagePath);
-                const buttonTemp = previousButton;
-                setTimeout(() => {
-                  actionOfSol(buttonTemp);
-                  actionOfSol(button);
-                  loadSound("sound/boom.mp3", 0.1);
-                  increaseScore();
-                  updateScoreInView();
-                }, 13000);
-              } else {
-                changeImageNameToMinusOne(previousButton);
-                changeImageNameToMinusOne(button);
-                hideTwoButtons(previousButton, button);
-                loadSound("sound/correct.mp3", 0.1);
-                increaseScore();
-                updateScoreInView();
-                break;
-              }
-            case 5:
-              unclock(previousButton);
-              unclock(button);
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            case 6:
-              console.log('case 6 nè');
-              changeImageNameToMinusOne(previousButton);
-              changeImageNameToMinusOne(button);
-              hideTwoButtons(previousButton, button);
-              loadSound("sound/correct.mp3", 0.1);
-              increaseScore();
-              updateScoreInView();
-              break;
-            default:
-              break;
-          }
-        } else {
+          handleWithLevel(level, previousButton, button);
+        }
+        else {
           // changeImageNameToMinusOne(previousButton);
           // changeImageNameToMinusOne(button);
           // hideTwoButtons(previousButton, button);
@@ -2578,21 +1158,12 @@ $(document).ready(function () {
     // Duyệt qua các button có giá trị là -1 và thực hiện di chuyển
     for (let i = 0; i < arrayButtoninColumn.length; i++) {
       const buttonInArrayPosition = arrayButtoninColumn[i];
-      const buttonInArray = getButtonAtPosition(
-        buttonInArrayPosition.column,
-        buttonInArrayPosition.row
-      );
+      const buttonInArray = getButtonAtPosition(buttonInArrayPosition.column, buttonInArrayPosition.row);
 
       // Lấy button ở dưới
-      let buttonBelow = getButtonAtPosition(
-        buttonInArrayPosition.column,
-        buttonInArrayPosition.row + 1
-      );
+      let buttonBelow = getButtonAtPosition(buttonInArrayPosition.column, buttonInArrayPosition.row + 1);
       if (buttonBelow.data("imageName") === "-1") {
-        buttonBelow = getButtonAtPosition(
-          buttonInArrayPosition.column,
-          buttonInArrayPosition.row + 2
-        );
+        buttonBelow = getButtonAtPosition(buttonInArrayPosition.column, buttonInArrayPosition.row + 2);
       }
 
       // Lấy hình ảnh của button ở dưới và gán cho button hiện tại
@@ -2605,11 +1176,11 @@ $(document).ready(function () {
         const buttonIndex = getButtonAtPosition(buttonInArrayPosition.column, j);
         const aboveButton = getButtonAtPosition(buttonInArrayPosition.column, j + 1);
         let aboveName = aboveButton.data("imageName");
-        // console.log("above", aboveName);
-        if (aboveName === "-1" || aboveName === null || aboveName === "undefined") {
+        console.log("above", aboveName);
+        buttonIndex.data("imageName", aboveName);
+        if (aboveName === "-1") {
           aboveName = "point.png";
         }
-        buttonIndex.data("imageName", aboveName);
         buttonIndex.css("background-image", `url('img/${aboveName}')`);
         buttonBelow = buttonIndex;
       }
@@ -2748,19 +1319,29 @@ $(document).ready(function () {
   // hành động của boss SOl
   function actionOfSol(button) {
     let buttonPosition = getPositionOfButton(button);
-    // lấy ra các button bao quanh button
-    for (let row = buttonPosition.row - 1; row <= buttonPosition.row + 1; row++) {
-      for (let col = buttonPosition.column - 1; col <= buttonPosition.column + 1; col++) {
-        let buttonAroundBoss = getButtonAtPosition(col, row);
-        if (buttonAroundBoss.data('imageName') !== 'dialga.png') {
-          buttonAroundBoss.css("background-image", `url('img/point.png')`);
-          buttonAroundBoss.data("imageName", "-1");
-          buttonAroundBoss.removeClass("boss-button");
+
+    // lấy các button hình dấu +
+    for (let row = 1; row <= 9; row++) {
+      for (let col = 1; col <= 16; col++) {
+        let buttonBossInRow = getButtonAtPosition(col, buttonPosition.row);
+        if (buttonBossInRow.data('imageName') !== 'dialga.png') {
+          buttonBossInRow.addClass("explode-button");
+          buttonBossInRow.css("background-image", `url('img/point.png')`);
+          buttonBossInRow.data("imageName", "-1");
+          buttonBossInRow.removeClass("boss-button");
         }
+      }
+      let buttonBossInCol = getButtonAtPosition(buttonPosition.column, row);
+      if (buttonBossInCol.data('imageName') !== 'dialga.png') {
+        buttonBossInCol.addClass("explode-button");
+        buttonBossInCol.css("background-image", `url('img/point.png')`);
+        buttonBossInCol.data("imageName", "-1");
+        buttonBossInCol.removeClass("boss-button");
       }
     }
     score += 5;
   }
+
   // hành động của boss Dia
   function actionOfDia() {
     pauseProgressBar();
@@ -2769,11 +1350,11 @@ $(document).ready(function () {
   function pauseProgressBar() {
     clearInterval(interval);
     setTimeout(() => {
-      startProgressBar(180);
       setTimeout(() => {
         loadSound("sound/increase.mp3", 0.1);
+        increaseProgressBar(currentProgressValue);
       }, 1000);
-    }, 9500);
+    }, 9000);
   }
 
 
@@ -2879,62 +1460,49 @@ $(document).ready(function () {
   // ================================================================ VẼ ================================================================
 
   // vẽ từng cột trên 1 hàng
-  function drawInRow(positionStart, positionEnd, row) {
+  function drawInRow(positionStart, positionEnd, row, isRemove) {
     if (positionStart < positionEnd) {
       for (let x = positionStart; x <= positionEnd; x++) {
         const buttonInBetween = getButtonAtPosition(x, row);
-        buttonInBetween.css("background-color", "red");
+        if (isRemove) {
+          buttonInBetween.css("background-color", "");
+        } else {
+          buttonInBetween.css("background-color", "red");
+        }
       }
     } else if (positionStart >= positionEnd) {
       for (let x = positionStart; x >= positionEnd; x--) {
         const buttonInBetween = getButtonAtPosition(x, row);
-        buttonInBetween.css("background-color", "red");
+        if (isRemove) {
+          buttonInBetween.css("background-color", "");
+        } else {
+          buttonInBetween.css("background-color", "red");
+        }
       }
     }
   }
   // vẽ từng hàng trên cùng cột
-  function drawInColumn(positionStart, positionEnd, column) {
+  function drawInColumn(positionStart, positionEnd, column, isRemove) {
     if (positionStart < positionEnd) {
       for (let y = positionStart; y <= positionEnd; y++) {
         const buttonInBetween = getButtonAtPosition(column, y);
-        buttonInBetween.css("background-color", "red");
+        if (isRemove) {
+          buttonInBetween.css("background-color", "");
+        } else {
+          buttonInBetween.css("background-color", "red");
+        }
       }
     } else if (positionStart >= positionEnd) {
       for (let y = positionStart; y >= positionEnd; y--) {
         const buttonInBetween = getButtonAtPosition(column, y);
-        buttonInBetween.css("background-color", "red");
+        if (isRemove) {
+          buttonInBetween.css("background-color", "");
+        } else {
+          buttonInBetween.css("background-color", "red");
+        }
       }
     }
   }
-  // đặt lại nền cho hàng
-  function removeDrawRow(positionStart, positionEnd, row) {
-    if (positionStart < positionEnd) {
-      for (let x = positionStart; x <= positionEnd; x++) {
-        const buttonInBetween = getButtonAtPosition(x, row);
-        buttonInBetween.css("background-color", "");
-      }
-    } else if (positionStart >= positionEnd) {
-      for (let x = positionStart; x >= positionEnd; x--) {
-        const buttonInBetween = getButtonAtPosition(x, row);
-        buttonInBetween.css("background-color", "");
-      }
-    }
-  }
-  // đặt lại nền cho cột
-  function removeDrawColumn(positionStart, positionEnd, column) {
-    if (positionStart < positionEnd) {
-      for (let y = positionStart; y <= positionEnd; y++) {
-        const buttonInBetween = getButtonAtPosition(column, y);
-        buttonInBetween.css("background-color", "");
-      }
-    } else if (positionStart >= positionEnd) {
-      for (let y = positionStart; y >= positionEnd; y--) {
-        const buttonInBetween = getButtonAtPosition(column, y);
-        buttonInBetween.css("background-color", "");
-      }
-    }
-  }
-
   // vẽ outside trên cùng hàng
   function drawOutsideInRow(buttonStart, buttonEnd, type) {
     const buttonStartPosition = getPositionOfButton(buttonStart);
@@ -3372,6 +1940,29 @@ $(document).ready(function () {
     }
   }
 
+  // hàm vẽ hình chữ U (vẽ chiều dọc)
+  function drawColumn_template(startButtonPosition, endButtonPosition, column, isRemove) {
+    for (let i = startButtonPosition; i <= endButtonPosition; i++) {
+      let buttonBetween = getButtonAtPosition(column, i);
+      if (isRemove) {
+        buttonBetween.css("background-color", "");
+      } else {
+        buttonBetween.css("background-color", "red");
+      }
+    }
+  }
+  // vẽ chữ U (vẽ chiều ngang)
+  function drawRow_template(startButtonPosition, endButtonPosition, row, isRemove) {
+    for (let i = startButtonPosition; i <= endButtonPosition; i++) {
+      let buttonBetween = getButtonAtPosition(i, row);
+      if (isRemove) {
+        buttonBetween.css("background-color", "");
+      } else {
+        buttonBetween.css("background-color", "red");
+      }
+    }
+  }
+
   // vẽ chữ Z, U, L: CHƯA HOÀN THÀNH
 
   //================================================================ LEVEL ================================================================
@@ -3384,8 +1975,7 @@ $(document).ready(function () {
       resetScore();
       updateScoreInView();
       resetProgressBar(180);
-      startProgressBar(180);
-      console.log("lv ", level);
+      startProgressBar(180, false);
       clearMatrix();
       createMatrix(level);
     } else if (level === 3) {
@@ -3393,33 +1983,33 @@ $(document).ready(function () {
       resetScore();
       updateScoreInView();
       resetProgressBar(180);
-      startProgressBar(180);
+      startProgressBar(180, false);
       clearMatrix();
       createMatrix(level);
-      console.log("lv ", level);
     }
     else if (level === 4) {
+      // ẩn nút reset
+      document.getElementById("reset").style.display = "none";
       updateLevel(level);
       resetScore();
       updateScoreInView();
       $reset.click(clearMatrix);
       $reset.click(createMatrixWithBoss);
       resetProgressBar(180);
-      startProgressBar(180);
+      startProgressBar(180, true);
       clearMatrix();
       createMatrixWithBoss();
-      console.log("lv ", level);
     } else if (level === 5) {
+      // hiện nút reset
+      document.getElementById("reset").style.display = "block";
       updateLevel(level);
       resetScore();
       updateScoreInView();
-      // $changePosition.click(changePosition);
       $reset.click(resetWithLock);
       resetProgressBar(180);
-      startProgressBar(180);
+      startProgressBar(180, false);
       clearMatrix();
       createMatrixWithLock();
-      console.log("lv ", level);
     }
     else if (level === 6) {
       updateLevel(level);
@@ -3429,11 +2019,10 @@ $(document).ready(function () {
       document.getElementById("skip-level").style.display = "none";
       $reset.click(resetWithPointEmpty);
       resetProgressBar(180);
-      startProgressBar(180);
+      startProgressBar(180, false);
       clearMatrix();
       createHalfMatrix();
       autoCreateButton();
-      console.log("lv ", level);
     }
   }
 
@@ -3442,21 +2031,16 @@ $(document).ready(function () {
     clearMatrix();
     createMatrix(level);
     resetProgressBar();
-    startProgressBar(180);
+    startProgressBar(180, false);
     resetScore();
     updateScoreInView()
-  }
-  // change position
-  function changePosition() {
-    deleteMatrix();
-    createMatrixWithPoint();
   }
   // reset game with lock (for lv 6)
   function resetWithLock() {
     clearMatrix();
     createMatrixWithLock();
     resetProgressBar();
-    startProgressBar(180);
+    startProgressBar(180, false);
     resetScore();
     updateScoreInView()
   }
@@ -3466,7 +2050,7 @@ $(document).ready(function () {
     clearMatrix();
     createHalfMatrix();
     resetProgressBar();
-    startProgressBar(180);
+    startProgressBar(180, false);
     resetScore();
     updateScoreInView()
   }
@@ -3481,7 +2065,6 @@ $(document).ready(function () {
         skipLevel();
       }, 2000);
     }
-    console.log('score:', score);
   }
 
 
@@ -3500,13 +2083,157 @@ $(document).ready(function () {
     $("#level").text(level);
   }
 
+  // hàm tạo hiệu ứng tăng dần trong progress bar (áp dụng cho boss Dialga)
+  function increaseProgressBar(currentProgressValue) {
+    var progressBar = document.getElementById('progressBar');
+    var value = currentProgressValue;
+    var increment = 1;
 
+    var interval = setInterval(function () {
+      value += increment;
+      progressBar.value = value;
+      if (value >= 180) {
+        clearInterval(interval);
+        let currentTime = 180;
+        const initialTime = 180;
+        interval = setInterval(() => {
+          currentTime -= 3;
+          const progressPercentage = (currentTime / initialTime) * 180;
+          progressBar.value = progressPercentage;
+          if (level === 5) {
+            clearInterval(interval);
+          }
+        }, 1000);
+      }
+    }, 10);
+  }
+
+  // hàm hiện ra thông tin giới thiệu
+  function showInf() {
+    $("#intro").click(function (event) {
+      event.preventDefault();
+      $("#inf").show();
+    });
+
+    $("#close-popup, #inf").click(function (event) {
+      if (event.target.id === "close-popup" || !$(event.target).closest("#inf").length) {
+        $("#inf").hide();
+      }
+    });
+  }
+
+  // hàm show hướng dẫn chơi
+  function showManual() {
+    $("#instruction").click(function (event) {
+      event.preventDefault();
+      $("#manual").show();
+    });
+
+    $("#close-popup, #manual").click(function (event) {
+      if (event.target.id === "close-popup" || !$(event.target).closest("#manual").length) {
+        $("#manual").hide();
+      }
+    })
+  }
+
+  // hàm xử lý sao khi ăn xong 
+  function handleAfter(previousButton, button) {
+    changeImageNameToMinusOne(previousButton);
+    changeImageNameToMinusOne(button);
+    hideTwoButtons(previousButton, button);
+    loadSound("sound/correct.mp3", 0.1);
+    increaseScore();
+    updateScoreInView();
+  }
+
+  // hàm xử lí sau khi ăn xong (dành cho lv4)
+  function handleAfterForLevel4(previousButton, button) {
+    let videoPath = "";
+    let imagePath = "";
+    if (previousButton.data('imageName') === 'dialga.png' && button.data('imageName') === 'dialga.png') {
+      videoPath = "video/diaAnimation.mp4";
+      imagePath = "img/diaStart.png";
+      showVideo(videoPath, imagePath);
+      actionOfDia();
+      changeImageNameToMinusOne(previousButton);
+      changeImageNameToMinusOne(button);
+      previousButton.removeClass("boss-button");
+      button.removeClass("boss-button");
+      hideTwoButtons(previousButton, button);
+      loadSound("sound/correct.mp3")
+      increaseScore();
+      updateScoreInView();
+    } else if (previousButton.data('imageName') === 'solgaleo.png' && button.data('imageName') === 'solgaleo.png') {
+      videoPath = "video/solAnimation.mp4";
+      imagePath = "img/solStart.png";
+      loadSound("sound/correct.mp3", 0.1);
+      increaseScore();
+      updateScoreInView();
+      showVideo(videoPath, imagePath);
+      const buttonCheck = previousButton;
+      setTimeout(() => {
+        actionOfSol(buttonCheck);
+        actionOfSol(button);
+        loadSound("sound/boom.mp3", 0.1);
+        increaseScore();
+        updateScoreInView();
+      }, 12000);
+    } else {
+      changeImageNameToMinusOne(previousButton);
+      changeImageNameToMinusOne(button);
+      hideTwoButtons(previousButton, button);
+      loadSound("sound/correct.mp3", 0.1);
+      increaseScore();
+      updateScoreInView();
+      console.log("case 4 nè");
+    }
+  }
+
+  // hàm kiểm tra level 
+  function handleWithLevel(level, previousButton, button) {
+    switch (level) {
+      case 1:
+        handleAfter(previousButton, button);
+        break;
+      case 2:
+        handleAfter(previousButton, button);
+        setTimeout(() => {
+          dropButton();
+        }, 200);
+        break;
+      case 3:
+        handleAfter(previousButton, button);
+        deleteMatrix();
+        createMatrixWithPoint();
+        break;
+      case 4:
+        handleAfterForLevel4(previousButton, button);
+        break;
+      case 5:
+        unclock(previousButton);
+        unclock(button);
+        handleAfter(previousButton, button);
+        break;
+      case 6:
+        handleAfter(previousButton, button);
+        break;
+      default:
+        break;
+    }
+  }
+
+  // các sự kiện click trên giao diện
+  $("#intro").click(showInf());
+  $("#instruction").click(showManual());
   $skip.click(skipLevel);
   $nextButton.click(skipLevel);
+
+
+  // bắt đầu chạy ở level 1
   if (level === 1) {
     $reset.click(reset);
     createMatrix(level);
-    startProgressBar(180);
+    startProgressBar(180, false);
   }
 
 });
