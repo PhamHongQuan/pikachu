@@ -1,4 +1,6 @@
 //  21130150_PhamHongQuan_0364537696_DH21DTA 
+// tài liệu tham khảo: https://cachhoc.net/2014/03/25/thuat-toan-game-pokemon-pikachu/?lang=en
+
 
 $(document).ready(function () {
   const ROWS = 11;
@@ -17,6 +19,7 @@ $(document).ready(function () {
   const card = document.querySelector(".notification-card");
   var currentScore = parseInt($("#score").text());
   let currentProgressValue = 0;
+  var restartButtonClicked = false;
   // var popup = document.getElementById('inf');
   const IMAGE_NAMES = [
     "pikachu.png",
@@ -31,10 +34,14 @@ $(document).ready(function () {
     "volcarona.png",
     "drednaw.png",
     "palafin-hero.png",
-    "golurk.png"
+    "golurk.png",
+    "flaaffy.png",
+    "magcargo.png",
+    "lucario.png"
   ];
 
   // thanh timelife 
+  // các level khác ngoài lv4 thì thời gian giảm 1, còn lv 4 thì thời gian giảm 2
   function startProgressBar(totalTime, isLevel4) {
     const progressBar = document.getElementById("progressBar");
     let currentTime = totalTime;
@@ -49,10 +56,12 @@ $(document).ready(function () {
       const progressPercentage = (currentTime / initialTime) * 180;
       progressBar.value = progressPercentage;
       if (currentTime <= 0) {
+        $('.game-over-card').show();
         clearInterval(interval);
       }
     }, 1000);
   }
+
   // reset lại thanh progress
   function resetProgressBar() {
     clearInterval(interval);
@@ -77,7 +86,7 @@ $(document).ready(function () {
       button.css("background-image", `url('img/${imageName}')`);
       button.data("imageName", imageName);
 
-      // sự kiện click chọn  hình
+      // sự kiện click chọn hình
       button.click(function () {
         logicGamePikachu($(this), level);
         console.log("================================");
@@ -110,6 +119,7 @@ $(document).ready(function () {
     }
   }
 
+  // hàm xóa các ô trong ma trận
   function clearMatrix() {
     $(".cell").remove();
   }
@@ -132,34 +142,38 @@ $(document).ready(function () {
     return position;
   }
 
-  // Hàm lấy button tại vị trí hàng và cột chỉ định
+  // Hàm này nhận vào cột và hàng, trả về button tại vị trí đó
   function getButtonAtPosition(column, row) {
-    const cellIndex = row * COLS + column; // Tính chỉ số của ô trong mảng các ô
-    const cell = $(".cell").eq(cellIndex); // Lấy ô tại chỉ số đã tính toán
-    const button = cell.find("button"); // Tìm button trong ô đó
+    const cellIndex = row * COLS + column;
+    const cell = $(".cell").eq(cellIndex);
+    const button = cell.find("button");
     return button;
   }
 
   // hàm kiểm tra ở 4 cạnh ngoài cùng (nằm trên cùng hàng hoặc cùng cột)
+  // nếu các button nằm ở ngoài cùng (trên, dưới, trái, phải) thì đương nhiên là nó sẽ "ăn" được
   function checkOutside(button1, button2) {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
     // kiểm tra 2 button cùng hàng có khác nhau không
+    // nếu cùng hàng thì phải khác cột
     if (position1.row === position2.row && position1.column !== position2.column) {
-      // kiểm tra phía trên cùng
+      // kiểm tra phía trên cùng (hàng 1)
+      // nếu 2 button có tên giống nhau => true
       if (position1.row === 1 && position2.row === 1) {
         if (button1.data("imageName") === button2.data("imageName")) {
           return true;
         }
       }
-      // kiểm tra phía dưới
+      // kiểm tra phía dưới (tương tự nhưng nằm ở hàng 9)
       else if (position1.row === 9 && position2.row === 9) {
         if (button1.data("imageName") === button2.data("imageName")) {
           return true;
         }
       }
     }
-    // kiểm tra 2 button cùng cột có khác nhau không
+    // kiểm tra 2 button cùng cột có khác nhau không (tương tự như trên)
+    // nếu cùng cột thì phải khác hàng
     else if (position1.column === position2.column && position1.row !== position2.row) {
       // kiểm tra bên trái
       if (position1.column === 1 && position2.column === 1) {
@@ -177,10 +191,11 @@ $(document).ready(function () {
     return false;
   }
 
-  // hàm kiểm tra phía trên cùng
+  // hàm kiểm tra phía trên cùng (chữ U nhưng thanh ngang của chữ U nằm ở trên hay còn gọi là U ngược)
   function checkOutsideTop(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
+    // mặc định button nào có hàng nhỏ hơn là buttonMin
     if (minButtonPosition.row > maxButtonPosition.row) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
@@ -190,31 +205,37 @@ $(document).ready(function () {
     if (minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
-    // trường hợp 1: buttonMin nằm hàng đầu tiên nhưng buttonMax thì không
+    // trường hợp 1: buttonMin nằm hàng đầu tiên nhưng buttonMax KHÔNG nằm trên hàng đầu tiên
     if (minButtonPosition.row === 1 && maxButtonPosition.row !== 1) {
       // kiểm tra buttonMax (xem trước nó có button nào có giá trị không)
+      // kiểm tra từ hàng của buttonMax đến hàng 1
       for (let i = maxButtonPosition.row - 1; i > 0; i--) {
         const buttonsAbove = getButtonAtPosition(maxButtonPosition.column, i);
+        // nếu có bất kì button nào có tên khác -1 (vì khi ăn thì tên sẽ đặt lại là -1) => false
         if (buttonsAbove.data("imageName") !== "-1") {
           return false;
         }
       }
     }
+
     // trường hợp 2: buttonMax nằm hàng đầu tiên nhưng buttonMin thì không
     if (maxButtonPosition.row === 1 && minButtonPosition.row !== 1) {
       // kiểm tra buttonMin (xem trước nó có button nào khác hay không)
       for (let i = minButtonPosition.row - 1; i > 0; i--) {
         const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
+        // nếu có button nào nằm từ hàng của buttonMin đến hàng 1 mà có tên khác -1 => false
         if (buttonsAbove.data("imageName") !== "-1") {
           return false;
         }
       }
     }
+
     // trường hợp 3: cả 2 buttonMin và buttonMax đều không nằm trên hàng đầu tiên
     // Kiểm tra đồng thời cả hai buttonMin và buttonMax
     if (minButtonPosition.row !== 1 && maxButtonPosition.row !== 1) {
-      // kiểm tra buttonMin
-      let isValid = true; // Giả sử ban đầu là hợp lệ
+      // Giả sử ban đầu là hợp lệ
+      let isValid = true;
+      // kiểm tra buttonMin (từ hàng của buttonMin đến hàng 1)
       for (let i = minButtonPosition.row - 1; i > 0; i--) {
         const buttonsAbove = getButtonAtPosition(minButtonPosition.column, i);
         if (buttonsAbove.data("imageName") !== "-1") {
@@ -232,11 +253,13 @@ $(document).ready(function () {
           }
         }
       }
+      // nếu điều kiện của cả buttonMin và buttonMax đều thỏa => vẽ
       if (isValid) {
         // vẽ 3 đường thẳng
         drawOutsideColumn_Top_Bottom(button1, "top");
         drawOutsideRow_Top_Bottom(button1, button2, "top");
         drawOutsideColumn_Top_Bottom(button2, "top");
+        // sau 0.1 giây thì xóa vẽ đi
         setTimeout(function () {
           removeDrawOutsideInColumn_Top_Bottom(button1, "top");
           removeDrawOutsideInRow_Top_Bottom(button1, button2, "top");
@@ -245,7 +268,7 @@ $(document).ready(function () {
       }
       return isValid;
     }
-    // vẽ 3 đường thẳng
+    // vẽ 3 đường thẳng (tương tự)
     drawOutsideColumn_Top_Bottom(button1, "top");
     drawOutsideRow_Top_Bottom(button1, button2, "top");
     drawOutsideColumn_Top_Bottom(button2, "top");
@@ -258,6 +281,8 @@ $(document).ready(function () {
   }
 
   // hàm kiểm tra phía dưới cùng
+  // tương tự như hàm checkOutsideTop 
+  // nhưng kiểm tra từ buttonMin/Max đến hàng 9
   function checkOutsideBottom(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
@@ -342,6 +367,7 @@ $(document).ready(function () {
   function checkOutsideRight(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
+    // mặc định button nào có hàng nhỏ hơn là buttonMin
     if (minButtonPosition.row > maxButtonPosition.row) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
@@ -354,6 +380,7 @@ $(document).ready(function () {
     // trường hợp 1: buttonMin nằm ngoài cùng bên phải nhưng buttonMax thì không
     if (minButtonPosition.column === 16 && maxButtonPosition.column !== 16) {
       // kiểm tra buttonMax
+      // duyệt từ cột của buttonMax đến cột thứ 16
       for (let i = maxButtonPosition.column + 1; i <= 16; i++) {
         const buttonRight = getButtonAtPosition(i, maxButtonPosition.row);
         if (buttonRight.data("imageName") !== "-1") {
@@ -364,7 +391,7 @@ $(document).ready(function () {
 
     // trường hợp 2: buttonMax nằm ngoài cùng bên phải nhưng buttonMin thì không
     if (maxButtonPosition.column === 16 && minButtonPosition.column !== 16) {
-      // kiểm tra buttonMin
+      // kiểm tra buttonMin (tương tự như kiểm tra buttonMax bên trên)
       for (let i = minButtonPosition.column + 1; i <= 16; i++) {
         const buttonRight = getButtonAtPosition(i, minButtonPosition.row);
         if (buttonRight.data("imageName") !== "-1") {
@@ -394,10 +421,13 @@ $(document).ready(function () {
           }
         }
       }
+      // nếu kiểm tra 2 buttonMin/Max hợp lệ thì vẽ 
       if (isValid) {
+        // vẽ 3 đường thẳng
         drawOutsideColumn_Right_Left(button1, button2, "right");
         drawOutsideRow_Right_Left(button1, "right");
         drawOutsideRow_Right_Left(button2, "right");
+        // xóa việc vẽ sau 0.1 giây
         setTimeout(() => {
           removeDrawOutsideColumn_Right_Left(button1, button2, "right");
           removeDrawOutsideRow_Right_Left(button1, "right");
@@ -418,6 +448,8 @@ $(document).ready(function () {
   }
 
   // hàm kiểm tra ngoài cùng bên trái
+  // tương tự như checkOutsideRight 
+  // nhưng kiểm tra từ buttonMin/Max đến cột thứ 1
   function checkOutsideLeft(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
@@ -429,6 +461,7 @@ $(document).ready(function () {
     if (maxButtonPosition.row === minButtonPosition.row) {
       return false;
     }
+
     // trường hợp 1: buttonMin nằm ngoài cùng bên trái nhưng butonMax thì không
     if (minButtonPosition.column === 1 && maxButtonPosition.column !== 1) {
       // kiểm tra buttonMax
@@ -453,7 +486,6 @@ $(document).ready(function () {
     // trường hợp 3: cả buttonMin và buttonMax đều không nằm ngoài cùng bên trái
     if (minButtonPosition.column !== 1 && maxButtonPosition.column !== 1) {
       let isValid = true;
-
       for (let i = minButtonPosition.column - 1; i > 0; i--) {
         const buttonLeft = getButtonAtPosition(i, minButtonPosition.row);
         if (buttonLeft.data("imageName") !== "-1") {
@@ -461,7 +493,6 @@ $(document).ready(function () {
           break;
         }
       }
-
       for (let i = maxButtonPosition.column - 1; i > 0; i--) {
         const buttonLeft = getButtonAtPosition(i, maxButtonPosition.row);
         if (buttonLeft.data("imageName") !== "-1") {
@@ -496,13 +527,17 @@ $(document).ready(function () {
   function checkColumn(button1, button2) {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
-    // nếu 2 button nằm trên 1 cột, tên giống nhau và không phải là 1
+    // nếu 2 button nằm trên 1 cột, tên giống nhau và không cùng hàng
     if (position1.column === position2.column && button1.data("imageName") === button2.data("imageName") && position1.row !== position2.row) {
+      // lấy ra hàng nhỏ nhất giữa 2 button làm điểm xuất phát
       const startRow = Math.min(position1.row, position2.row);
+      // lấy ra hàng lớn nhất giữa 2 button làm điểm kết thúc
       const endRow = Math.max(position1.row, position2.row);
-
+      // chạy từ hàng nhỏ nhất đến hàng lớn nhất
       for (let row = startRow + 1; row < endRow; row++) {
+        // lấy ra button trên cột của button1(button2 cũng được) và hàng chạy từ thấp lên cao
         const buttonInBetween = getButtonAtPosition(position1.column, row);
+        // nếu có bất kì button nào có tên khác -1 thì => false
         if (buttonInBetween.data("imageName") !== "-1") {
           return false;
         }
@@ -513,7 +548,9 @@ $(document).ready(function () {
     }
   }
 
-  // // Kiểm tra button theo chiều ngang
+  // Kiểm tra button theo chiều ngang
+  // tương tự như checkColumn bên trên 
+  // nhưng xuất phát từ cột nhỏ tới cột lớn
   function checkRow(button1, button2) {
     const position1 = getPositionOfButton(button1);
     const position2 = getPositionOfButton(button2);
@@ -534,7 +571,13 @@ $(document).ready(function () {
     }
   }
 
-  // Kiểm tra dòng theo chiều ngang
+  // Kiểm tra theo chiều ngang xem trên cột đó nó có liên thông không
+  // startY: điêm bắt đầu
+  // endY: điểm kết thúc 
+  // column: cột kiểm tra
+  // reverse: đảo ngược chiều duyệt
+  //        : nếu false thì duyệt từ start -> end
+  //        : nếu true thì duyệt từ end -> start
   function checkEmptyInColumn(startY, endY, column, reverse) {
     if (reverse === false) {
       for (let y = startY; y < endY; y++) {
@@ -554,7 +597,8 @@ $(document).ready(function () {
     return true;
   }
 
-  // Kiểm tra dòng theo chiều dọc
+  // tương tự như checkEmptyInColumn nhưng kiểm tra trên hàng thay vì trên cột
+  // Kiểm tra theo chiều dọc xem trên hàng đó có liên thông hay không
   function checkEmptyInRow(startX, endX, row, reverse) {
     if (reverse === false) {
       for (let x = startX; x < endX; x++) {
@@ -574,21 +618,25 @@ $(document).ready(function () {
     return true;
   }
 
-  // Hàm kiểm tra xem hai button tạo thành hình chữ Z hay không(THEO CHIỀU DỌC)
+  // Hàm kiểm tra xem hai button tạo thành hình chữ Z hay không
+  // kiểm tra theo chiều dọc 
   function checkShapeZ_Column(button1, button2) {
-    // Tìm điểm có y nhỏ nhất và lớn nhất
+    // nếu 2 button này không giống nhau => false
     if (button1.data("imageName") != button2.data("imageName")) {
       return false;
     }
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
+    // mặc định button nào có hàng nhỏ hơn thì đó là buttonMin
     if (minButtonPosition.row > maxButtonPosition.row) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
+    // nếu 2 button cùng hàng và cùng cột => false
     if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
+    // duyệt từ hàng của buttonMin đến hàng của buttonMax
     for (let i = minButtonPosition.row; i <= maxButtonPosition.row; i++) {
       // Kiểm tra ba dòng
       // buttonMin nằm bên trái buttonMax 
@@ -607,11 +655,11 @@ $(document).ready(function () {
             drawColumn_template(i, maxButtonPosition.row, maxButtonPosition.column, true);
             drawRow_template(minButtonPosition.column, maxButtonPosition.column, i, true);
           }, 100);
-
           return true;
         }
       }
       // buttonMin nằm bên phải buttonMax
+      // Z: xuống dưới -> sang trái -> xuống dưới
       else if (minButtonPosition.column > maxButtonPosition.column) {
         if (checkEmptyInColumn(minButtonPosition.row + 1, i, minButtonPosition.column, false) &&
           checkEmptyInRow(maxButtonPosition.column, minButtonPosition.column + 1, i, false) &&
@@ -630,22 +678,24 @@ $(document).ready(function () {
         }
       }
     }
-
     return false;
   }
 
+  // tương tự như checkShapZ_Column nhưng xuất phát theo chiều ngang
   // Hàm kiểm tra xem hai button tạo thành hình chữ Z hay không
   function checkShapeZ_Row(button1, button2) {
     // Tìm điểm có y nhỏ nhất và lớn nhất
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
+    // button nào có cột nhỏ là buttonMin
     if (minButtonPosition.column > maxButtonPosition.column) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    if (minButtonPosition.row === maxButtonPosition.row || minButtonPosition.column === maxButtonPosition.column) {
+    if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
+    // duyệt từ cột nhỏ đến cột lớn hơn
     for (let i = minButtonPosition.column; i <= maxButtonPosition.column; i++) {
       // Kiểm tra ba dòng
       // buttonMin nằm trên buttonMax
@@ -688,38 +738,48 @@ $(document).ready(function () {
     return false;
   }
 
-  // kiểm tra đường chéo từ trái sang phải trong hình vuông n
+  // kiểm tra trong ma tra 2x2 (1 cục hình vuông)
   function checkSquareLeftToRight(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
+    // button nào có cột nhỏ hơn là button min
     if (minButtonPosition.column > maxButtonPosition.column) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-
+    // lấy cột của buttonMax - cột của buttonMin và hàng của buttonMax - hàng của buttonMin
+    // nếu cả 2 giá trị đó là 1 = đó là hình vuông 2x2
+    // => buttonMax và buttonMin tạo thành 1 đường chéo từ phía trên bên trái xuống phía dưới bên phải
     if (maxButtonPosition.column - minButtonPosition.column === 1 && maxButtonPosition.row - minButtonPosition.row === 1) {
+      // lấy ra button ở góc trên bên phải
       const buttonCheckRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
+      // lấy ra button ở góc dưới bên trái
       const buttonCheckBottom = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row + 1);
-      if (buttonCheckRight.data("imageName") === "-1" || buttonCheckBottom.data("imageName") === "-1"
-      ) {
+      // nếu 1 trong 2 button đó có giá trị = -1 thì => true (vì đã tạo thành chữ L có 2 cạnh bằng nhau)
+      if (buttonCheckRight.data("imageName") === "-1" || buttonCheckBottom.data("imageName") === "-1") {
         return true;
       }
     }
     return false;
   }
 
+  // tương như như checkSquareLeftToRight nhưng đường chéo từ góc trên bên phải đến góc dưới bên trái
   // kiểm tra đường chéo từ phải sang trái trong hình vuông
   function checkSquareRightToLeft(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
+    // button nào có cột nhỏ hơn là buttonMin
     if (minButtonPosition.column > maxButtonPosition.column) {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-
+    
     if (minButtonPosition.row - maxButtonPosition.row === 1 && maxButtonPosition.column - minButtonPosition.column === 1) {
+      // lấy ra button ở góc trên bên trái
       const buttonCheckTop = getButtonAtPosition(minButtonPosition.column, minButtonPosition.row - 1);
+      // lấy ra button ở góc dưới bên phải
       const buttonCheckRight = getButtonAtPosition(minButtonPosition.column + 1, minButtonPosition.row);
+      // nếu 1 trong 2 button nào có tên là -1 => true
       if (buttonCheckTop.data("imageName") === "-1" || buttonCheckRight.data("imageName") === "-1") {
         return true;
       }
@@ -736,7 +796,7 @@ $(document).ready(function () {
       maxButtonPosition = getPositionOfButton(button1);
     }
     // KIỂM TRA CHỮ L (XUẤT PHÁT THEO CHIỀU NGANG)
-    // kiểm tra từ min->cột của max, nếu trên hàng đó không có vật cản thì xét tiếp
+    // kiểm tra từ cột min->cột của max, nếu trên hàng đó không có vật cản thì xét tiếp
     if (checkEmptyInRow(minButtonPosition.column + 1, maxButtonPosition.column + 1, minButtonPosition.row, false)) {
       const buttonCheck = getButtonAtPosition(maxButtonPosition.column, minButtonPosition.row);
       // buttonCheckPosition: vị trí mà hàm checkEmptyInColumn sẽ chạy từ max hoặc đến max
@@ -829,18 +889,26 @@ $(document).ready(function () {
       minButtonPosition = getPositionOfButton(button2);
       maxButtonPosition = getPositionOfButton(button1);
     }
-    // console.log('max: ', maxButtonPosition.row, maxButtonPosition.column);
-    // console.log('min: ', minButtonPosition.row, minButtonPosition.column);
+    // nếu 2 button đó cùng hàng và cùng cột => false
     if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
+    // tạo ra button ở vị trí góc trên bên trái
     var buttonCheck = getButtonAtPosition(1, 1);
+    // lấy vị trí 
     var buttonCheckPosition = getPositionOfButton(buttonCheck);
     let shouldBreak = false;
+    // duyệt từ hàng của buttonMax đến hàng của buttonMin
     for (let i = maxButtonPosition.row; i >= minButtonPosition.row && !shouldBreak; i--) {
+      // trên mỗi hàng, duyệt từ cột đầu tiên (1) đến cột cuối cùng (16)
       for (let j = 1; j <= 16; j++) {
         var buttonBarrier = getButtonAtPosition(j, i);
         var buttonBarrierPosition = getPositionOfButton(buttonBarrier);
+        // kiểm tra từ cột của buttonBarrier đến cột của buttonMax (trên hàng của buttonMax)
+        // sau đó kiểm tra từ cột của buttonBarrier đến cột của buttonMin (trên hàng của buttonMin)
+        // sau đó kiểm tra từ hàng của buttonMin đến hết hàng của buttonMax (trên cột của buttonBarrier)
+        // nếu thỏa mãn hết thì cập nhật lại buttonCheck đồng thời đặt shouldBreak = true để thóat khỏi 2 vòng lặp
+        // buttonCheck: coi như là button giao điểm giữa buttonMin/Max với buttonBarrier => buttonCheck này phải là button có giá trị là -1 để dùng để kiểm tra (ở dưới)
         if (checkEmptyInRow(buttonBarrierPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
           checkEmptyInRow(buttonBarrierPosition.column, minButtonPosition.column, minButtonPosition.row, false) &&
           checkEmptyInColumn(minButtonPosition.row, maxButtonPosition.row + 1, buttonBarrierPosition.column, false)) {
@@ -851,13 +919,16 @@ $(document).ready(function () {
         }
       }
     }
-    console.log("check_Row: ", buttonCheckPosition.row, buttonCheckPosition.column);
-    // buttonCheck nằm bên trái
+    // sau khi có buttonCheck, kiểm tra xem vị trí của buttonCheck
+    // buttonCheck nằm bên trái buttonMin và buttonMax
     if (buttonCheckPosition.column < minButtonPosition.column && buttonCheckPosition.column < maxButtonPosition.column) {
+      // kiểm tra trên hàng buttonMin, từ cột buttonCheck đến cột buttonMin
+      // kiểm tra trên hàng buttonMax, từ cột của buttonCheck đến cột của buttonMax
+      // kiểm tra trên cột buttonCheck, từ hàng buttonMin đến hết hàng của buttonMax
+      // nếu thỏa mãn hết thì vẽ và trả về true
       if (checkEmptyInRow(buttonCheckPosition.column, minButtonPosition.column, minButtonPosition.row, false) &&
         checkEmptyInRow(buttonCheckPosition.column, maxButtonPosition.column, maxButtonPosition.row, false) &&
         checkEmptyInColumn(minButtonPosition.row, maxButtonPosition.row + 1, buttonCheckPosition.column, false)) {
-        console.log('U nằm bên trái');
         // vẽ
         drawColumn_template(minButtonPosition.row, maxButtonPosition.row, buttonCheckPosition.column, false);
         drawRow_template(buttonCheckPosition.column, minButtonPosition.column, minButtonPosition.row, false);
@@ -870,7 +941,7 @@ $(document).ready(function () {
         }, 100);
         return true;
       }
-      // buttonCheck nằm bên phải
+      // tương tự nhưng buttonCheck nằm bên phải
     } else if (buttonCheckPosition.column > minButtonPosition.column && buttonCheckPosition.column > maxButtonPosition.column) {
       if (checkEmptyInRow(minButtonPosition.column + 1, buttonCheckPosition.column + 1, minButtonPosition.row, false) &&
         checkEmptyInRow(maxButtonPosition.column + 1, buttonCheckPosition.column + 1, maxButtonPosition.row, false) &&
@@ -893,7 +964,8 @@ $(document).ready(function () {
   }
 
 
-  // kiểm tra chữ U (phía trên)
+  // kiểm tra chữ U (xuất phát theo chiều dọc)
+  // cách thức tương tự như checkShapeU_Row 
   function checkShapeU_Column(button1, button2) {
     let minButtonPosition = getPositionOfButton(button1);
     let maxButtonPosition = getPositionOfButton(button2);
@@ -905,8 +977,6 @@ $(document).ready(function () {
     if (minButtonPosition.row === maxButtonPosition.row && minButtonPosition.column === maxButtonPosition.column) {
       return false;
     }
-    // console.log('max: ', maxButtonPosition.row, maxButtonPosition.column);
-    // console.log('min: ', minButtonPosition.row, minButtonPosition.column);
     var buttonCheck = getButtonAtPosition(1, 1);
     var buttonCheckPosition = getPositionOfButton(buttonCheck);
     let shouldBreak = false;
@@ -924,13 +994,11 @@ $(document).ready(function () {
         }
       }
     }
-    console.log("check_Column: ", buttonCheckPosition.row, buttonCheckPosition.column);
     // buttonCheck nằm bên trên
     if (buttonCheckPosition.row < minButtonPosition.row && buttonCheckPosition.row < maxButtonPosition.row) {
       if (checkEmptyInColumn(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, false) &&
         checkEmptyInColumn(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, false) &&
         checkEmptyInRow(minButtonPosition.column, maxButtonPosition.column + 1, buttonCheckPosition.row, false)) {
-        console.log('u trên');
         // vẽ
         drawColumn_template(buttonCheckPosition.row, minButtonPosition.row, minButtonPosition.column, false);
         drawColumn_template(buttonCheckPosition.row, maxButtonPosition.row, maxButtonPosition.column, false);
@@ -961,7 +1029,6 @@ $(document).ready(function () {
             drawColumn_template(maxButtonPosition.row, buttonCheckPosition.row, maxButtonPosition.column, true);
             drawRow_template(minButtonPosition.column, maxButtonPosition.column, buttonCheckPosition.row, true);
           }, 100);
-          console.log('u dưới');
           return true;
         }
       }
@@ -982,9 +1049,6 @@ $(document).ready(function () {
       if (button !== previousButton && previousButton.data("imageName") === button.data("imageName")) {
         const previousButtonPosition = getPositionOfButton(previousButton);
         const buttonPosition = getPositionOfButton(button);
-        console.log('button1: ', previousButton.data('imageName'));
-        console.log('button2: ', button.data('imageName'));
-
 
         // kiểm tra trên 1 cột =>  hàng tăng dần
         if (checkColumn(previousButton, button)) {
@@ -1038,7 +1102,6 @@ $(document).ready(function () {
           setTimeout(function () {
             removeDrawRectLeftToRight(previousButtonPosition.column, previousButtonPosition.row, buttonPosition.column, buttonPosition.row);
           }, 100);
-
           handleWithLevel(level, previousButton, button);
         }
         // kiểm tra hình vuông từ phải sang trái
@@ -1048,11 +1111,9 @@ $(document).ready(function () {
           setTimeout(function () {
             removeDrawRectRightToLeft(previousButtonPosition.column, previousButtonPosition.row, buttonPosition.column, buttonPosition.row);
           }, 100);
-
           handleWithLevel(level, previousButton, button);
         }
         else if (checkShapeL_Row(previousButton, button)) {
-          // previousButton.css("background-color", "");
           console.log("L Row");
           handleWithLevel(level, previousButton, button);
         }
@@ -1061,11 +1122,9 @@ $(document).ready(function () {
           handleWithLevel(level, previousButton, button);
         }
         else if (checkShapeZ_Column(previousButton, button)) {
-          // previousButton.css("background-color", "");
           console.log("Z COLUMN");
           handleWithLevel(level, previousButton, button);
         } else if (checkShapeZ_Row(previousButton, button)) {
-          // previousButton.css("background-color", "");
           console.log("Z ROW");
           handleWithLevel(level, previousButton, button);
         }
@@ -1104,14 +1163,14 @@ $(document).ready(function () {
           // changeImageNameToMinusOne(button);
           // hideTwoButtons(previousButton, button);
           loadSound("sound/uncorrect.mp3", 0.1);
-          console.log("đéo có cái nào đc");
+          console.log("không có thuật toàn nào đúng");
           previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
           previousButton = null;
         }
         previousButton = null;
       } else {
         loadSound("sound/uncorrect.mp3", 0.1);
-        previousButton.css("background-color", ""); // Đặt lại màu nền của previousButton
+        previousButton.css("background-color", ""); 
         previousButton = null;
       }
     }
@@ -1204,7 +1263,7 @@ $(document).ready(function () {
       }
     }
   }
-  // tạo ra button
+
   function createButtonWithPoint(imageName, button) {
     if (button.data("imageName") === "empty") {
       button.css("background-image", `url('img/${imageName}')`);
@@ -1212,6 +1271,7 @@ $(document).ready(function () {
     }
     return button;
   }
+
   // xóa css của button và đặt lại imageName là empty
   function deleteMatrix() {
     for (let row = 1; row <= 9; row++) {
@@ -1228,7 +1288,7 @@ $(document).ready(function () {
   }
 
   // lv4: BOSS
-  // hàm tạo ra ma trận với 4 button Boss
+  // hàm tạo ra ma trận với 4 button Boss (2 dialga và 2 solgaleo)
   function createMatrixWithBoss() {
     var imageBoss = ["solgaleo.png", "dialga.png"];
     var solgaleoCount = 0;
@@ -1289,25 +1349,23 @@ $(document).ready(function () {
     }
     return positions;
   }
-  // show start image 
+  // hiện lên hình ảnh bắt đầu khi buttonBoss được "ăn"
   function showStartImage(imagePath) {
     var imgStart = document.getElementById("imgStart");
     imgStart.style.display = "block";
     imgStart.style.backgroundImage = "url('" + imagePath + "')";
   }
-  // show video
+  // hiện lên video của boss
   function showVideo(videoPath, imagePath) {
     var videoContainer = document.getElementById("videoContainer");
     var video = document.getElementById("videoPlayer");
     showStartImage(imagePath);
-
     setTimeout(() => {
       var imgStart = document.getElementById("imgStart");
       imgStart.style.display = "none";
       videoContainer.style.display = "block";
       video.src = videoPath;
       video.controls = false;
-
       video.onended = function () {
         video.pause();
         videoContainer.style.display = "none";
@@ -1316,10 +1374,10 @@ $(document).ready(function () {
       video.play();
     }, 1000);
   }
+  
   // hành động của boss SOl
   function actionOfSol(button) {
     let buttonPosition = getPositionOfButton(button);
-
     // lấy các button hình dấu +
     for (let row = 1; row <= 9; row++) {
       for (let col = 1; col <= 16; col++) {
@@ -1362,7 +1420,7 @@ $(document).ready(function () {
   // LV5: TẠO RA MA TRẬN CÓ XÍCH, ĂN NHỮNG BUTTON GẦN XÍCH THÌ XÍCH MỞ
   // hàm tạo ra ma trận có xích
   function createMatrixWithLock() {
-    console.log('lv 5 nè');
+    // console.log('lv 5 nè');
     for (let i = 0; i < ROWS; i++) {
       for (let j = 0; j < COLS; j++) {
         const cell = $("<div></div>").addClass("cell");
@@ -1410,8 +1468,8 @@ $(document).ready(function () {
     }
   }
 
-  // LV 6: HALF MATRIX => 5s CREATE 1 BUTTON
-  // hàm tạo ra nữa ma trận bên trái
+  // LV 6: HALF MATRIX => 5s TẠO RA 1 BUTTON
+  // hàm tạo ra ma trận rỗng giữa
   function createHalfMatrix() {
     for (let i = 0; i < ROWS; i++) {
       for (let j = 0; j < COLS; j++) {
@@ -1451,7 +1509,7 @@ $(document).ready(function () {
           logicGamePikachu($(this), level);
         });
       }
-    }, 5000); // Thực hiện sau mỗi 5 giây
+    }, 5000);
   }
 
 
@@ -1963,8 +2021,6 @@ $(document).ready(function () {
     }
   }
 
-  // vẽ chữ Z, U, L: CHƯA HOÀN THÀNH
-
   //================================================================ LEVEL ================================================================
 
   // hàm chuyển sang level khác
@@ -2076,6 +2132,8 @@ $(document).ready(function () {
   // cập nhật lại điểm ở view
   function updateScoreInView() {
     $("#score").text(score);
+    $("#finalScore").text(score);
+    console.log(score);
   }
 
   // cập nhật level ở view 
@@ -2185,7 +2243,7 @@ $(document).ready(function () {
       loadSound("sound/correct.mp3", 0.1);
       increaseScore();
       updateScoreInView();
-      console.log("case 4 nè");
+      // console.log("case 4 nè");
     }
   }
 
@@ -2221,6 +2279,11 @@ $(document).ready(function () {
         break;
     }
   }
+
+  // tải lại trang khi nhấn nút restart
+  $('#restartButton').click(function () {
+    location.reload();
+  });
 
   // các sự kiện click trên giao diện
   $("#intro").click(showInf());
